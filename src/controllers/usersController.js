@@ -23,7 +23,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { email, password, es_admin } = req.body;
+    const { email, password, isAdmin } = req.body;
   
    
       bcrypt.genSalt(10, (err, salt) => {
@@ -41,7 +41,7 @@ const controller = {
           const newUser = new User({
             email,
             password: hashedPassword,
-            es_admin: es_admin || false, // Marca al usuario como usuario normal
+            isAdmin: isAdmin || false, // Marca al usuario como usuario normal
           });
   
           // Guarda al usuario en la base de datos
@@ -88,10 +88,10 @@ login: (req, res) => {
               }
   
               // Si las contraseñas coinciden, generar un token
-              const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '1h' });
+              const token = jwt.sign({ userId: user._id, email: user.email,  }, 'mi_secreto_secreto', { expiresIn: '2m' });
 
-              // Enviar una respuesta con el token y el rol del usuario
-              res.json({ message: "Inicio de sesión exitoso", token, role: user.es_admin ? 'admin' : 'user' });
+              // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
+              res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
           });
       })
       .catch((error) => {

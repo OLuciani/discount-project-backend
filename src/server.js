@@ -35,6 +35,8 @@ console.log('Vistas:', path.join(__dirname, '/views'));
 
 import mainRoute from "./routes/mainRoute.js";   //Hay que poner si o si .js
 import usersRoute from "./routes/usersRoute.js";
+import offeredDiscountsRoute from "./routes/offeredDiscountRoute.js";
+import userDiscountQrsRoute from "./routes/userDiscountQrsRoute.js";
 
 const PORT = process.env.PORT_SECRET || 5050;
 
@@ -44,4 +46,5 @@ app.listen(PORT, () => {
 
 app.use("/", mainRoute);
 app.use("/api", usersRoute);
-
+app.use("/api", offeredDiscountsRoute);
+app.use("/api", userDiscountQrsRoute);
