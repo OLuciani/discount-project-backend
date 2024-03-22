@@ -1,6 +1,6 @@
 FROM node:21-bullseye
 
-WORKDIR /server  
+WORKDIR /server.js 
 
 COPY package*.json ./
 
