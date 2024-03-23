@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import cors from "cors";
+//import cors from "cors";
 import methodOverride from "method-override";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url'; // Esta línea importa la función fileURLToPath del módulo url de Node.js. Esta función se utiliza para convertir una URL de archivo en un camino de acceso de archivo.
@@ -22,7 +22,23 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 
-app.use(cors());
+
+// Middleware para manejar los encabezados CORS de manera personalizada
+app.use((req, res, next) => {
+    const allowedOrigins = ['http://localhost:19000'];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+    }
+    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", true);
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, UPDATE");
+    next();
+});
+
+
+
+//app.use(cors());
 app.use(methodOverride('_method'));
 
 
@@ -45,7 +61,8 @@ app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+const BASE_API_PATH = "/api";
 app.use("/", mainRoute);
-app.use("/api", usersRoute);
-app.use("/api", offeredDiscountsRoute);
-app.use("/api", userDiscountQrsRoute);
+app.use(BASE_API_PATH, usersRoute);
+app.use(BASE_API_PATH, offeredDiscountsRoute);
+app.use(BASE_API_PATH, userDiscountQrsRoute);
