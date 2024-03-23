@@ -22,18 +22,24 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 
-
 // Middleware para manejar los encabezados CORS de manera personalizada
 app.use((req, res, next) => {
-    const allowedOrigins = 'http://localhost:8081';
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
+    // Aquí definimos los orígenes permitidos y los métodos permitidos
+    const allowedOrigins = ['http://localhost:8081'];
+    const allowedMethods = ['GET', 'PATCH', 'PUT'];
+
+    // Configuramos CORS para todas las rutas
+    res.header('Access-Control-Allow-Origin', allowedOrigins);
+    res.header('Access-Control-Allow-Methods', allowedMethods.join(','));
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Credentials', true);
+
+    // Verificamos si la solicitud es de un origen permitido
+    if (allowedOrigins.includes(req.headers.origin)) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Origin not allowed' });
     }
-    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", true);
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, UPDATE");
-    next();
 });
 
 
