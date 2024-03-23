@@ -45,7 +45,7 @@ app.use((req, res, next) => {
 
 
 
-app.use(cors());
+//app.use(cors());
 app.use(methodOverride('_method'));
 
 
