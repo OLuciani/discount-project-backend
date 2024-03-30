@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 
 const userDiscountQrSchema = mongoose.Schema({
+    businessId: String,
+    businessName: String,
     userId: String,
     discountId: String,
     qrData: String,

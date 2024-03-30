@@ -22,9 +22,11 @@ const controller = {
     });
   }, 
   discountQr_create: (req, res) => {
-    const {userId, discountId, qrData, createdAt, isValid, expirationDate} = req.body;
+    const {businessId, businessName, userId, discountId, qrData, createdAt, isValid, expirationDate} = req.body;
 
     const newDiscountQr = new UserDiscountQr({
+      businessId: businessId,
+      businessName: businessName,
       userId: userId,
       discountId: discountId,
       qrData: qrData,
