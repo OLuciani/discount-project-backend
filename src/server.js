@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
 
-// Middleware para manejar los encabezados CORS de manera personalizada
+/* // Middleware para manejar los encabezados CORS de manera personalizada
 app.use((req, res, next) => {
     // Aquí definimos los orígenes permitidos y los métodos permitidos
     const allowedOrigins = ['http://localhost:8081'];
@@ -40,11 +40,19 @@ app.use((req, res, next) => {
     } else {
         res.status(403).json({ error: 'Origin not allowed' });
     }
-});
+}); */
+
+// Middleware para habilitar CORS
+app.use(cors({
+    origin: 'http://localhost:8081', 
+    methods: ['GET', 'POST', 'PATCH', 'PUT'], 
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+    credentials: true 
+  }));
 
 
 
-app.use(cors());
+//app.use(cors());
 app.use(methodOverride('_method'));
 
 
