@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-//import cors from "cors";
+import cors from "cors";
 import methodOverride from "method-override";
 import dotenv from "dotenv";
 import { fileURLToPath } from 'url'; // Esta línea importa la función fileURLToPath del módulo url de Node.js. Esta función se utiliza para convertir una URL de archivo en un camino de acceso de archivo.
@@ -44,7 +44,7 @@ app.use((req, res, next) => {
 
 
 
-//app.use(cors());
+app.use(cors());
 app.use(methodOverride('_method'));
 
 
