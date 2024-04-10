@@ -22,14 +22,14 @@ const controller = {
     });
   }, 
   discountQr_create: (req, res) => {
-    const {businessId, businessName, userId, discountId, qrData, createdAt, isValid, expirationDate} = req.body;
+    const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt, isValid, expirationDate} = req.body;
 
     const newDiscountQr = new UserDiscountQr({
       businessId: businessId,
       businessName: businessName,
       userId: userId,
-      discountId: discountId,
-      qrData: qrData,
+      offeredDiscountId: offeredDiscountId,
+      discountDetails: discountDetails,
       createdAt: createdAt,
       isValid: isValid,
       expirationDate: expirationDate
@@ -39,7 +39,10 @@ const controller = {
     newDiscountQr.save()
       .then((UserDiscountQr) => {
         // Aquí envío una respuesta de éxito en el registro de los datos del QR generado por el usuario. 
-        res.json({ message: "Registro exitoso de los datos del QR del usuario" });
+        res.json({ 
+          message: "Registro exitoso de los datos del QR del usuario", 
+          discountQrId: UserDiscountQr._id // Recupero el ID del nuevo documento en base de datos.
+        });
       })
       .catch((error) => {
         // Aquí manejas los errores en caso de que no se pueda guardar los datos del QR en la base de datos
