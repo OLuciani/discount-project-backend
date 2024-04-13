@@ -21,6 +21,17 @@ const controller = {
       res.status(500).json({ error: "Error al buscar usuarios"});
     });
   }, 
+  userDiscountQrs_OneUser: (req, res) => {
+    const userId = req.params._id; // Obtener el ID de usuario de los parámetros de la solicitud
+    UserDiscountQr.find({ userId: userId }) // Buscar descuentos con el ID de usuario proporcionado
+    .then((userDiscountQrs) => {
+        res.json(userDiscountQrs); // Enviar los descuentos encontrados como respuesta
+    })
+    .catch((error) => {
+        console.error("Error al buscar descuentos de usuario: ", error);
+        res.status(500).json({ error: "Error al buscar descuentos de usuario" });
+    });
+},
   discountQr_create: (req, res) => {
     const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt, isValid, expirationDate} = req.body;
 
