@@ -59,6 +59,47 @@ const controller = {
         // Aquí manejas los errores en caso de que no se pueda guardar los datos del QR en la base de datos
         res.status(500).json({ error: "Error en el registro de los datos del QR del usuario" });
       });
+  },
+  userDiscountQrs_oneDiscount: (req, res) => {
+    const discountId = req.params._id; // Obtener el ID del descuento de los parámetros de la solicitud
+    UserDiscountQr.find({ _id: discountId }) // Buscar el descuento con el ID que llega por params
+    .then((discountFound) => {
+        res.json(discountFound); // Enviar el descuento encontrado como respuesta
+    })
+    .catch((error) => {
+        console.error("Error al buscar el descuento con el id: ", error);
+        res.status(500).json({ error: "Error al buscar el descuento con el id." });
+    });
+  },
+  discount_update: (req, res) => {
+    //Recupero el id para buscar el descuenteo que quiero actualizar en Base de Datos.
+    const discountId = req.params._id;
+    console.log("ID del descuento recibido:", discountId);
+
+    //Extraigo los datos que quiero actualizar desde la solicitud put
+    const { isValid } = req.body;
+
+    //Creo un objeto con los datos a actualizar en el descuento en Base de Datos.
+    const updatedDiscount = {
+      isValid
+    };
+
+    UserDiscountQr.findByIdAndUpdate(discountId, updatedDiscount, {new: true})
+    .then((updatedDiscount) => {
+      if (!updatedDiscount) {
+        // Si no se encontró el descuento, responde con un error 404
+        return res.status(404).json({ error: "Descuento no encontrado" });
+      }
+
+      console.log("La propiedad isValid del descuento escaneado se ha actualizado correctamente:", updatedReservation);
+      res.status(200).json(updatedDiscount);
+    })
+    .catch((error) => {
+      console.error("Error al actualizar la propiedad isValid del descuento escaneado:", error);
+      res.status(500).json({ error: "Error al actualizar la propiedad isValid del descuento escaneado." });
+    });
+
+
   }
 };
 
