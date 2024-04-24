@@ -62,13 +62,16 @@ const controller = {
   },
   userDiscountQrs_oneDiscount: (req, res) => {
     const discountId = req.params._id; // Obtener el ID del descuento de los parámetros de la solicitud
+    console.log(discountId);
     UserDiscountQr.findById(discountId) // Buscar el descuento con el ID que llega por params
       .then((discountFound) => {
         if (!discountFound) {
           // Si no se encontró el descuento, responde con un error 404
           return res.status(404).json({ error: "Descuento no encontrado" });
+          console.log("No se encontro el descuento.")
         }
         res.json(discountFound); // Enviar el descuento encontrado como respuesta
+        console.log(discountFound);
       })
       .catch((error) => {
         console.error("Error al buscar el descuento con el id: ", error);
