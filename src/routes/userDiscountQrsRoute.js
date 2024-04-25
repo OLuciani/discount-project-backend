@@ -9,6 +9,6 @@ router.get("/userDiscountQrs_list", userDiscountQrsController.userDiscountQrs_li
 router.get("/userDiscountQrs_OneUser/:_id", userDiscountQrsController.userDiscountQrs_OneUser);
 router.post("/discountQr_create", authenticateToken, userDiscountQrsController.discountQr_create);
 router.get("/userDiscountQrs_oneDiscount/:_id", authenticateToken, userDiscountQrsController.userDiscountQrs_oneDiscount);
-router.patch("/discount_update", authenticateToken, userDiscountQrsController.discount_update);
+router.patch("/discount_update/:_id", authenticateToken, userDiscountQrsController.discount_update);
 
 export default router;
