@@ -43,12 +43,18 @@ app.use((req, res, next) => {
 }); */
 
 // Middleware para habilitar CORS
-app.use(cors({
+/* app.use(cors({
     origin: 'http://localhost:8081', 
     methods: ['GET', 'POST', 'PATCH', 'PUT'], 
     allowedHeaders: ['Content-Type', 'Authorization'], 
     credentials: true 
-  }));
+  })); */
+  app.use(cors({
+    origin: 'http://localhost:8081', 
+    methods: ['get', 'post', 'patch', 'put'], 
+    allowedHeaders: ['Content-Type', 'Authorization'], 
+    credentials: true 
+}));
 
 
 
