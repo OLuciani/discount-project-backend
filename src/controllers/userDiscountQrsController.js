@@ -99,7 +99,7 @@ const controller = {
         return res.status(404).json({ error: "Descuento no encontrado" });
       }
 
-      console.log("La propiedad isValid del descuento escaneado se ha actualizado correctamente:", updatedReservation);
+      console.log("La propiedad isValid del descuento escaneado se ha actualizado correctamente:", updatedDiscount);
       res.status(200).json(updatedDiscount);
     })
     .catch((error) => {
