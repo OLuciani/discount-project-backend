@@ -55,8 +55,8 @@ app.use(cors({
 //app.use(cors());
 //app.use(methodOverride('_method'));
 app.use(methodOverride('_method', {
-    methods: ['POST', 'GET', 'PUT', 'PATCH'] // Agrega PUT y PATCH a los métodos permitidos
-  }));
+    methods: ['post', 'get', 'put', 'patch'] 
+}));
   
 
 
