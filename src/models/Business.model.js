@@ -5,6 +5,8 @@ const businessSchema = mongoose.Schema({
     businessName: String,
     businessType: String,
     address: String,
+    latitude: Number,
+    longitude: Number,
     ownerId: String,
     imageURL: String,
 });
