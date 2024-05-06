@@ -1,7 +1,7 @@
 import express from "express";
 const router = express.Router();
 import jwt from "jsonwebtoken";
-import validationsLogin from "../middlewares/validationLogin";
+import validationsLogin from "../middlewares/validationLogin.js";
 
 import usersController from "../controllers/usersController.js";  //Hay que poner si o si .js
 
