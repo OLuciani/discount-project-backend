@@ -59,7 +59,8 @@ const controller = {
       });
     
   },
-login: (req, res) => {
+  //Este funciona bien. Es el que usaba sin express-validator
+/* login: (req, res) => {
   console.log("Solicitud de inicio de sesión recibida");
   console.log("Datos de la solicitud:", req.body);
 
@@ -99,6 +100,46 @@ login: (req, res) => {
           console.error("Error al buscar el usuario:", error);
           res.status(500).json({ message: "Error en la autenticación" });
       });
+} */
+
+login: async (req, res) => {
+  console.log("Solicitud de inicio de sesión recibida");
+  console.log("Datos de la solicitud:", req.body);
+
+  const { email, password } = req.body;
+
+  console.log("Email recibido:", email);
+  console.log("Contraseña recibida:", password);
+
+  // Verificar si hay errores de validación
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() }); // Devolver errores de validación como un array en JSON
+  }
+
+  try {
+      const user = await User.findOne({ email }); // Utilizar await para esperar la promesa de búsqueda
+
+      if (!user) {
+          console.log("Usuario no encontrado");
+          return res.status(401).json({ message: "Usuario no registrado" });
+      }
+
+      // Verificar la contraseña
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+          return res.status(401).json({ message: "Contraseña incorrecta" });
+      }
+
+      // Si las contraseñas coinciden, generar un token
+      const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '2m' });
+
+      // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
+      res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
+  } catch (error) {
+      console.error("Error al buscar el usuario:", error);
+      res.status(500).json({ message: "Error en la autenticación" });
+  }
 }
 
   
