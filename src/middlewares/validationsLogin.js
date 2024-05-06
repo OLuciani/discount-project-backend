@@ -5,4 +5,4 @@ const validationsLogin = [
     check('password').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres'), // El campo contraseña debe tener al menos 6 caracteres
 ];
 
-module.exports = validationsLogin; 
+export default validationsLogin; 
