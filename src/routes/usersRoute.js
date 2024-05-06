@@ -1,6 +1,7 @@
 import express from "express";
 const router = express.Router();
 import jwt from "jsonwebtoken";
+import validationsLogin from "../middlewares/validationLogin";
 
 import usersController from "../controllers/usersController.js";  //Hay que poner si o si .js
 
@@ -30,7 +31,7 @@ const authenticateToken = (req, res, next) => {
 
 router.get("/users_list", usersController.users_list);
 router.post("/user_register", usersController.user_register);
-router.post("/login", usersController.login);
+router.post("/login", validationsLogin, usersController.login);
 
 
 export default router;

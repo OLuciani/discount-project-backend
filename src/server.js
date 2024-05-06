@@ -18,7 +18,7 @@ const __dirname = dirname(__filename); // Después de obtener el nombre del arch
 // Al agregar estas líneas, puedo utilizar __dirname y __filename en la aplicación de la misma manera que lo haría en un entorno de módulo CommonJS. Esto es especialmente útil cuando necesito obtener rutas absolutas para acceder a archivos en una aplicación.
 
 app.use(express.static(path.join(__dirname, "../public")));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true })); //Antes de configurar el middleware validationsLogin.js la tenia con valor false.
 app.use(express.json());
 
 

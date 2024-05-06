@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { validationResult} from "express-validator";
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
