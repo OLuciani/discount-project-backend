@@ -102,48 +102,65 @@ const controller = {
       });
 } */
 
-login: async (req, res) => {
-  console.log("Solicitud de inicio de sesión recibida");
-  console.log("Datos de la solicitud:", req.body);
+  login: async (req, res) => {
+    console.log("Solicitud de inicio de sesión recibida");
+    console.log("Datos de la solicitud:", req.body);
 
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  console.log("Email recibido:", email);
-  console.log("Contraseña recibida:", password);
+    console.log("Email recibido:", email);
+    console.log("Contraseña recibida:", password);
 
-  // Verificar si hay errores de validación
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() }); // Devolver errores de validación como un array en JSON
-  }
+    // Verificar si hay errores de validación
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() }); // Devolver errores de validación como un array en JSON
+    }
 
-  try {
-      const user = await User.findOne({ email }); // Utilizar await para esperar la promesa de búsqueda
+    try {
+        const user = await User.findOne({ email }); // Utilizar await para esperar la promesa de búsqueda
 
-      if (!user) {
-          console.log("Usuario no encontrado");
-          return res.status(401).json({ message: "Usuario no registrado" });
+        if (!user) {
+            console.log("Usuario no encontrado");
+            return res.status(401).json({ message: "Usuario no registrado" });
+        }
+
+        // Verificar la contraseña
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Contraseña incorrecta" });
+        }
+
+        // Si las contraseñas coinciden, generar un token
+        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '2m' });
+
+        // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
+    } catch (error) {
+        console.error("Error al buscar el usuario:", error);
+        res.status(500).json({ message: "Error en la autenticación" });
+    }
+  },
+  checkEmail: async (req, res) => {
+      const email = req.params.email;
+    
+      try {
+        const user = await User.findOne({ email });
+        if (user) {
+          // Generar un token único utilizando JWT
+          const token = jwt.sign({ email }, 'tu_secreto', { expiresIn: '15m' }); // Firma con un secreto y expiración de 15 minutos
+    
+          // Devolver el token junto con la respuesta
+          res.json({ exists: true, success: true, message: 'Correo electrónico encontrado', token });
+        } else {
+          res.json({ exists: false, success: false, message: 'Correo electrónico no encontrado' });
+        }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error en el servidor' });
       }
-
-      // Verificar la contraseña
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-          return res.status(401).json({ message: "Contraseña incorrecta" });
-      }
-
-      // Si las contraseñas coinciden, generar un token
-      const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '2m' });
-
-      // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
-      res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
-  } catch (error) {
-      console.error("Error al buscar el usuario:", error);
-      res.status(500).json({ message: "Error en la autenticación" });
-  }
-}
-
+    }
   
-
 };
 
 export default controller;

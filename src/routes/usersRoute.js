@@ -32,6 +32,7 @@ const authenticateToken = (req, res, next) => {
 router.get("/users_list", usersController.users_list);
 router.post("/user_register", usersController.user_register);
 router.post("/login", validationsLogin, usersController.login);
+router.get("/checkEmail/:email", usersController.checkEmail);
 
 
 export default router;
