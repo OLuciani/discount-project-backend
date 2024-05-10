@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+/* import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult} from "express-validator";
@@ -118,11 +118,11 @@ const controller = {
   
 };
 
-export default controller;
+export default controller; */
 
 
 
-/* import mongoose from "mongoose";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult} from "express-validator";
@@ -143,7 +143,9 @@ console.log(User);
 
 // Configuro el transporte
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.live.com",
+  port: 587, // Puerto seguro
+  secure: false, // false para usar TLS - el puerto 587
   auth: {
     user: "oluciani@hotmail.es",
     pass: "contraseñaficticia2",
@@ -286,4 +288,4 @@ const controller = {
   } 
 };
 
-export default controller; */
+export default controller;
