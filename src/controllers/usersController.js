@@ -152,7 +152,7 @@ const transporter = nodemailer.createTransport({
   secure: true,
   auth: {
     user: "lucianioscar1@gmail.com",
-    pass: process.env.NODEMAILER_PASSWORD,
+    pass: transporterPassword,
   },
 });
 
@@ -166,9 +166,6 @@ const sendEmail = async (email, token) => {
       to: email,
       subject: "Solicitud de restablecimiento de contraseña",
       text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso: ${token}`,
-      html: `
-        <h5>Este mensaje fue enviado desde nodemailer.</h5>
-      `
     };
 
     // Enviar el correo electrónico
