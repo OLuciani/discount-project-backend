@@ -145,8 +145,8 @@ console.log(User);
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "lucianioscar1@gmail.com",
-    pass: "contraseñaficticia1",
+    user: "oluciani@hotmail.es",
+    pass: "contraseñaficticia2",
   },
 });
 
@@ -155,7 +155,7 @@ const sendEmail = async (email, token) => {
   try {
     // Defino el mensaje de correo electrónico
     const mailOptions = {
-      from: "lucianioscar1@gmail.com",
+      from: "oluciani@hotmail.es",
       to: email,
       subject: "Solicitud de restablecimiento de contraseña",
       text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso: ${token}`,
@@ -245,7 +245,7 @@ const controller = {
         }
 
         // Si las contraseñas coinciden, generar un token
-        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '2m' });
+        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
@@ -261,6 +261,9 @@ const controller = {
       const user = await User.findOne({ email });
       if (user) {
         const token = jwt.sign({ email }, "tu_secreto", { expiresIn: "15m" });
+
+        
+        
         await sendEmail(email, token);
         res.json({
           exists: true,
@@ -275,6 +278,7 @@ const controller = {
           message: "Correo electrónico no encontrado",
         });
       }
+      
     } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, message: "Error en el servidor" });
