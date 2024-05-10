@@ -143,28 +143,28 @@ console.log(User);
 
 // Configuro el transporte
 const transporter = nodemailer.createTransport({
-  host: "smtp.live.com",
-  port: 587, // Puerto seguro
-  secure: false, // false para usar TLS - el puerto 587
+  service: "gmail",
   auth: {
-    user: "oluciani@hotmail.es",
-    pass: "contraseñaficticia2",
+    user: "lucianioscar1@gmail.com",
+    pass: "contraseñaficticia1",
   },
 });
 
+
 // Función para enviar el correo electrónico
-const sendEmail = async (email, token) => {
+const sendEmail = async () => {
   try {
     // Defino el mensaje de correo electrónico
     const mailOptions = {
-      from: "oluciani@hotmail.es",
-      to: email,
+      from: "lucianioscar1@gmail.com",
+      to: "oluciani@hotmail.es",
       subject: "Solicitud de restablecimiento de contraseña",
-      text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso: ${token}`,
+      text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso`,
     };
 
     // Enviar el correo electrónico
     await transporter.sendMail(mailOptions);
+    sendEmail();
     console.log("Correo electrónico enviado con éxito");
   } catch (error) {
     console.error("Error al enviar el correo electrónico:", error);
@@ -266,7 +266,7 @@ const controller = {
 
         
         
-        await sendEmail(email, token);
+        //await sendEmail();
         res.json({
           exists: true,
           success: true,
