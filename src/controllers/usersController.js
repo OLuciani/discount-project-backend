@@ -143,28 +143,32 @@ console.log(User);
 
 // Configuro el transporte
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: "lucianioscar1@gmail.com",
-    pass: "contraseñaficticia1",
+    pass: "boieconcbpabubba",
   },
 });
 
 
 // Función para enviar el correo electrónico
-const sendEmail = async () => {
+const sendEmail = async (email, token) => {
   try {
     // Defino el mensaje de correo electrónico
     const mailOptions = {
       from: "lucianioscar1@gmail.com",
-      to: "oluciani@hotmail.es",
+      to: email,
       subject: "Solicitud de restablecimiento de contraseña",
-      text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso`,
+      text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso: ${token}`,
+      html: `
+        <h5>Este mensaje fue enviado desde nodemailer.</h5>
+      `
     };
 
     // Enviar el correo electrónico
     await transporter.sendMail(mailOptions);
-    sendEmail();
     console.log("Correo electrónico enviado con éxito");
   } catch (error) {
     console.error("Error al enviar el correo electrónico:", error);
@@ -263,10 +267,10 @@ const controller = {
       const user = await User.findOne({ email });
       if (user) {
         const token = jwt.sign({ email }, "tu_secreto", { expiresIn: "15m" });
+        
+        await sendEmail(email, token);
 
         
-        
-        //await sendEmail();
         res.json({
           exists: true,
           success: true,
