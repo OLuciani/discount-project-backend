@@ -1,4 +1,4 @@
-/* import mongoose from "mongoose";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult} from "express-validator";
@@ -87,7 +87,7 @@ const controller = {
         }
 
         // Si las contraseñas coinciden, generar un token
-        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '2m' });
+        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
@@ -118,11 +118,11 @@ const controller = {
   
 };
 
-export default controller; */
+export default controller;
 
 
 
-import mongoose from "mongoose";
+/* import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult} from "express-validator";
@@ -286,4 +286,4 @@ const controller = {
   } 
 };
 
-export default controller;
+export default controller; */
