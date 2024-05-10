@@ -127,7 +127,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { validationResult} from "express-validator";
 import nodemailer from "nodemailer";
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
