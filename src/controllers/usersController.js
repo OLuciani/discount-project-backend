@@ -140,6 +140,8 @@ import User from "../models/User.model.js";
 
 console.log(User);
 
+const transporterPassword = process.env.NODEMAILER_PASSWORD;
+
 
 // Configuro el transporte
 const transporter = nodemailer.createTransport({
@@ -148,7 +150,7 @@ const transporter = nodemailer.createTransport({
   secure: true,
   auth: {
     user: "lucianioscar1@gmail.com",
-    pass: "boieconcbpabubba",
+    pass: process.env.NODEMAILER_PASSWORD,
   },
 });
 
@@ -175,7 +177,6 @@ const sendEmail = async (email, token) => {
     throw error;
   }
 }; 
-
 
 
 const controller = {
@@ -262,21 +263,25 @@ const controller = {
   },
   checkEmail: async (req, res) => {
     const email = req.params.email;
-
+  
     try {
       const user = await User.findOne({ email });
       if (user) {
         const token = jwt.sign({ email }, "tu_secreto", { expiresIn: "15m" });
-        
-        await sendEmail(email, token);
-
-        
-        res.json({
-          exists: true,
-          success: true,
-          message: "Correo electrónico encontrado",
-          token,
-        });
+  
+        // Intenta enviar el correo electrónico
+        try {
+          await sendEmail(email, token);
+          res.json({
+            exists: true,
+            success: true,
+            message: "Correo electrónico encontrado",
+            token,
+          });
+        } catch (error) {
+          console.error("Error al enviar el correo electrónico:", error);
+          res.status(500).json({ success: false, message: "Error al enviar el correo electrónico" });
+        }
       } else {
         res.json({
           exists: false,
@@ -284,12 +289,12 @@ const controller = {
           message: "Correo electrónico no encontrado",
         });
       }
-      
     } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
-  } 
+  }
+  
 };
 
 export default controller;
