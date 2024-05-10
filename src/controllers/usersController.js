@@ -166,6 +166,9 @@ const sendEmail = async (email, token) => {
       to: email,
       subject: "Solicitud de restablecimiento de contraseña",
       text: `Se ha solicitado un restablecimiento de contraseña. Utiliza el siguiente token para completar el proceso: ${token}`,
+      html: `
+        <h5>Este mensaje fue enviado desde nodemailer.</h5>
+      `
     };
 
     // Enviar el correo electrónico
@@ -260,7 +263,7 @@ const controller = {
         res.status(500).json({ message: "Error en la autenticación" });
     }
   },
-  checkEmail: async (req, res) => {
+  /* checkEmail: async (req, res) => {
     const email = req.params.email;
   
     try {
@@ -288,6 +291,28 @@ const controller = {
           message: "Correo electrónico no encontrado",
         });
       }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+  } */
+  checkEmail: async (req, res) => {
+    const email = req.params.email;
+  
+    try {
+      // Si no encuentras el usuario, no importa, igual envía el correo electrónico
+      const user = await User.findOne({ email });
+
+      const token = jwt.sign({ email }, "tu_secreto", { expiresIn: "15m" });
+
+      // Intenta enviar el correo electrónico
+      await sendEmail(email, token);
+      res.json({
+        exists: !!user, // Si el usuario existe, devuelve true
+        success: true,
+        message: "Correo electrónico enviado correctamente",
+        token,
+      });
     } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, message: "Error en el servidor" });
