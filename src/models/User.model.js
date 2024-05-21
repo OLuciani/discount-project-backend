@@ -7,7 +7,8 @@ const userSchema = mongoose.Schema({
     businessName: String,
     email: String, 
     password: String,
-    isAdmin: { type: Boolean, default: false } // Marca al usuario como usuario normal por defecto
+    //isAdmin: { type: Boolean, default: false } // Marca al usuario como usuario normal por defecto
+    role: String
 });
 
 const User = mongoose.model("user", userSchema);

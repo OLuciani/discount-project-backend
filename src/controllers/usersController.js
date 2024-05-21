@@ -191,7 +191,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { email, password, isAdmin } = req.body;
+    const { email, password/* , isAdmin  */} = req.body;
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
           console.error(err);
@@ -207,7 +207,8 @@ const controller = {
           const newUser = new User({
             email,
             password: hashedPassword,
-            isAdmin: isAdmin || false, // Marca al usuario como usuario normal
+            //isAdmin: isAdmin || false, // Marca al usuario como usuario normal
+            role: "user", // Marca al usuario como usuario normal
           });
   
           // Guarda al usuario en la base de datos
@@ -254,10 +255,17 @@ const controller = {
         }
 
         // Si las contraseñas coinciden, generar un token
-        const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
+        //const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
+        const token = jwt.sign(
+          { userId: user._id, email: user.email, role: user.role }, // Añadir el rol del usuario al payload del token
+          'mi_secreto_secreto',
+          { expiresIn: '15m' }
+      );
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
-        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
+        //res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role });
+
     } catch (error) {
         console.error("Error al buscar el usuario:", error);
         res.status(500).json({ message: "Error en la autenticación" });
