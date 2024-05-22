@@ -191,7 +191,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { email, password/* , isAdmin  */} = req.body;
+    const { name, lastname, phone, email, password, /* , isAdmin  */} = req.body;
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
           console.error(err);
@@ -209,6 +209,9 @@ const controller = {
             password: hashedPassword,
             //isAdmin: isAdmin || false, // Marca al usuario como usuario normal
             role: "user", // Marca al usuario como usuario normal
+            name, 
+            lastname, 
+            phone, 
           });
   
           // Guarda al usuario en la base de datos
