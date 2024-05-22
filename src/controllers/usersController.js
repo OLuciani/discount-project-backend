@@ -267,7 +267,7 @@ const controller = {
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         //res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
-        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role });
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name });
 
     } catch (error) {
         console.error("Error al buscar el usuario:", error);
