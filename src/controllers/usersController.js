@@ -260,7 +260,7 @@ const controller = {
         // Si las contraseñas coinciden, generar un token
         //const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
         const token = jwt.sign(
-          { userId: user._id, email: user.email, role: user.role }, // Añadir el rol del usuario al payload del token
+          { userId: user._id, email: user.email, role: user.role, name: user.name }, // Añadir el rol del usuario al payload del token
           'mi_secreto_secreto',
           { expiresIn: '15m' }
       );
