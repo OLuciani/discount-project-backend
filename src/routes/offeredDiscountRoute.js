@@ -5,4 +5,6 @@ import offeredDiscountsController from "../controllers/offeredDiscountsControlle
 
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
 
+router.post("/discount_create", offeredDiscountsController.discount_create);
+
 export default router;
