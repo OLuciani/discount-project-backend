@@ -191,7 +191,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { name, lastname, phone, email, password, businessName/* , isAdmin  */} = req.body;
+    const { name, lastName, phone, email, password, businessName/* , isAdmin  */} = req.body;
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
           console.error(err);
@@ -206,7 +206,7 @@ const controller = {
   
           const newUser = new User({
             name, 
-            lastname, 
+            lastName, 
             businessName,
             phone, 
             email,
