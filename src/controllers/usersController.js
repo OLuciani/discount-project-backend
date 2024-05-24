@@ -191,7 +191,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { name, lastname, phone, email, password, /* , isAdmin  */} = req.body;
+    const { name, lastname, phone, email, password, businessName/* , isAdmin  */} = req.body;
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
           console.error(err);
@@ -205,13 +205,14 @@ const controller = {
           }
   
           const newUser = new User({
+            name, 
+            lastname, 
+            businessName,
+            phone, 
             email,
             password: hashedPassword,
             //isAdmin: isAdmin || false, // Marca al usuario como usuario normal
             role: "user", // Marca al usuario como usuario normal
-            name, 
-            lastname, 
-            phone, 
           });
   
           // Guarda al usuario en la base de datos
@@ -267,7 +268,7 @@ const controller = {
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         //res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
-        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name });
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name, businessName: user.businessName});
 
     } catch (error) {
         console.error("Error al buscar el usuario:", error);
