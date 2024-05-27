@@ -12,6 +12,50 @@ import Business from "../models/Business.model.js";
 console.log(Business);
 
 const controller = {
+  business_create: async (req, res) => {
+    try {
+      const {
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        latitude,
+        longitude,
+        ownerId,
+      } = req.body;
+
+      // Obtener la URL del archivo cargado
+      let imageURL = '';
+
+      if (req.file) {
+        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
+      }
+
+      const newBusiness = new Business({
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        latitude,
+        longitude,
+        ownerId,
+        imageURL,
+      });
+
+      const savedBusiness = await newBusiness.save();
+
+      if (!savedBusiness) {
+        throw new Error('Error en el registro del negocio.');
+      }
+
+      // Aquí se envía una respuesta de éxito en el registro del negocio.
+      res.status(200).json({ message: 'El nuevo negocio se guardó exitosamente.' });
+    } catch (error) {
+      // Aquí manejo los errores en caso de que no se pueda guardar el negocio en la base de datos.
+      console.error('Error en el registro del negocio:', error.message);
+      res.status(500).json({ error: 'Error en el registro del negocio.' });
+    }
+  },
   business_list: (req, res) => {
     Business.find()
     .then((allBusiness) => res.json(allBusiness))

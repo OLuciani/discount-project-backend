@@ -74,7 +74,7 @@ const controller = {
       let imageURL = '';
 
       if (req.file) {
-        imageURL = req.file.path;
+        imageURL = "/IMG/" + req.file.filename; // Usar la ruta relativa del archivo
       }
 
       const newOfferedDiscount = new OfferedDiscount({
@@ -94,10 +94,10 @@ const controller = {
         throw new Error('Error en el registro del descuento.');
       }
 
-      // Aquí envías una respuesta de éxito en el registro.
+      // Aquí se envía una respuesta de éxito en el registro.
       res.status(200).json({ message: 'El descuento se guardó exitosamente.' });
     } catch (error) {
-      // Aquí manejas los errores en caso de que no se pueda guardar el descuento en la base de datos.
+      // Aquí manejo los errores en caso de que no se pueda guardar el descuento en la base de datos.
       console.error('Error en el registro del descuento:', error.message);
       res.status(500).json({ error: 'Error en el registro del descuento.' });
     }

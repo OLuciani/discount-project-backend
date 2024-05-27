@@ -1,4 +1,4 @@
-import express from "express";
+/* import express from "express";
 import multer from "multer";
 import path from "path";
 
@@ -28,6 +28,37 @@ import offeredDiscountsController from "../controllers/offeredDiscountsControlle
 
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
 
+router.post("/discount_create", upload.single("imageURL"), offeredDiscountsController.discount_create);
+
+export default router; */
+
+
+import express from "express";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import offeredDiscountsController from "../controllers/offeredDiscountsController.js";
+
+const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Configuración de multer para el manejo de imágenes
+const storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, path.join(__dirname, "/../../public/IMG"));
+    },
+    filename: (req, file, callback) => {
+        callback(null, "file-" + Date.now() + path.extname(file.originalname));
+    },
+});
+
+const upload = multer({ storage: storage });
+
+
+router.get("/discounts_list", offeredDiscountsController.discounts_list);
 router.post("/discount_create", upload.single("imageURL"), offeredDiscountsController.discount_create);
 
 export default router;

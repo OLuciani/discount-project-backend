@@ -219,7 +219,7 @@ const controller = {
           newUser.save()
             .then((user) => {
               // Aquí envío una respuesta de éxito en el registro. 
-              res.json({ message: "Registro exitoso como usuario" });
+              res.json({ message: "Registro exitoso como usuario", _id: user._id });
             })
             .catch((error) => {
               // Aquí manejas los errores en caso de que no se pueda guardar el usuario en la base de datos
