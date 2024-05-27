@@ -74,7 +74,7 @@ const controller = {
       let imageURL = '';
 
       if (req.file) {
-        imageURL = "/IMG/" + req.file.filename; // Usar la ruta relativa del archivo
+        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
       }
 
       const newOfferedDiscount = new OfferedDiscount({
