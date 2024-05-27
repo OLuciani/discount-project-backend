@@ -48,7 +48,7 @@ const __dirname = dirname(__filename);
 // Configuración de multer para el manejo de imágenes
 const storage = multer.diskStorage({
     destination: (req, file, callback) => {
-        callback(null, path.join(__dirname, "/../../public/IMG"));
+        callback(null, path.join(__dirname, "/../../public/img"));
     },
     filename: (req, file, callback) => {
         callback(null, "file-" + Date.now() + path.extname(file.originalname));
