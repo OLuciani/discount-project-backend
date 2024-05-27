@@ -261,14 +261,14 @@ const controller = {
         // Si las contraseñas coinciden, generar un token
         //const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
         const token = jwt.sign(
-          { userId: user._id, email: user.email, role: user.role, name: user.name }, // Añadir el rol del usuario al payload del token
+          { userId: user._id, email: user.email, role: user.role, name: user.name, }, // Añadir el rol del usuario al payload del token
           'mi_secreto_secreto',
           { expiresIn: '15m' }
       );
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         //res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
-        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name, businessName: user.businessName});
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name, businessName: user.businessName, businessId: user.businessId});
 
     } catch (error) {
         console.error("Error al buscar el usuario:", error);
