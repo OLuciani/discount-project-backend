@@ -191,7 +191,7 @@ const controller = {
     });
   },
   user_register: (req, res) => {
-    const { name, lastName, phone, email, password, businessName/* , isAdmin  */} = req.body;
+    const { name, lastName, phone, email, password, businessName, businessId, businessType/* , isAdmin  */} = req.body;
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
           console.error(err);
@@ -208,6 +208,8 @@ const controller = {
             name, 
             lastName, 
             businessName,
+            businessId,
+            businessType,
             phone, 
             email,
             password: hashedPassword,
@@ -228,6 +230,55 @@ const controller = {
         });
       });
     
+  },
+  /* user_update: (req, res) => {
+    //Recupero el id para buscar el descuenteo que quiero actualizar en Base de Datos.
+    const userId = req.params._id;
+
+    //Extraigo los datos que quiero actualizar desde la solicitud patch
+    const { businessId } = req.body;
+
+     //Creo un objeto con los datos a actualizar en el descuento en Base de Datos.
+     const updatedUser = {
+      businessId
+    };
+
+    User.findByIdAndUpdate(businessId, updatedUser, {new: true})
+    .then((updatedUser) => {
+      if (!updatedUser) {
+        // Si no se encontró el usuario, responde con un error 404
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      console.log("La propiedad businessId del usuario escaneado se ha actualizado correctamente:", updatedUser);
+      res.status(200).json(updatedUser);
+    })
+    .catch((error) => {
+      console.error("Error al actualizar la propiedad businessId del descuento escaneado:", error);
+      res.status(500).json({ error: "Error al actualizar la propiedad businessId del descuento escaneado." });
+    });
+  }, */
+  user_update: async (req, res) => {
+    try {
+      const userId = req.params._id; // Obtener el ID del usuario desde los parámetros de la solicitud
+      const { businessId, businessType } = req.body; // Obtener businessId del cuerpo de la solicitud
+
+      // Aquí actualizamos el usuario con el businessId proporcionado
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { businessId, businessType },
+        { new: true } // Esto es para devolver el documento actualizado
+      );
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "Usuario no encontrado" });
+      }
+
+      res.status(200).json({ message: "Usuario actualizado correctamente con businessId y businessType.", updatedUser });
+    } catch (error) {
+      console.error("Error al actualizar el usuario:", error.message);
+      res.status(500).json({ error: "Error al actualizar el usuario con businessId y businessType." });
+    }
   },
   login: async (req, res) => {
     console.log("Solicitud de inicio de sesión recibida");

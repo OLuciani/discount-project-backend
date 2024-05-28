@@ -31,6 +31,7 @@ const authenticateToken = (req, res, next) => {
 
 router.get("/users_list", usersController.users_list);
 router.post("/user_register", usersController.user_register);
+router.patch("/user_update/:_id", usersController.user_update);
 router.post("/login", validationsLogin, usersController.login);
 router.get("/checkEmail/:email", usersController.checkEmail);
 

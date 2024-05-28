@@ -84,7 +84,7 @@ const controller = {
     const discountId = req.params._id;
     console.log("ID del descuento recibido:", discountId);
 
-    //Extraigo los datos que quiero actualizar desde la solicitud put
+    //Extraigo los datos que quiero actualizar desde la solicitud patch
     const { isValid } = req.body;
 
     //Creo un objeto con los datos a actualizar en el descuento en Base de Datos.
