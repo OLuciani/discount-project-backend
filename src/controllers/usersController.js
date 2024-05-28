@@ -231,33 +231,6 @@ const controller = {
       });
     
   },
-  /* user_update: (req, res) => {
-    //Recupero el id para buscar el descuenteo que quiero actualizar en Base de Datos.
-    const userId = req.params._id;
-
-    //Extraigo los datos que quiero actualizar desde la solicitud patch
-    const { businessId } = req.body;
-
-     //Creo un objeto con los datos a actualizar en el descuento en Base de Datos.
-     const updatedUser = {
-      businessId
-    };
-
-    User.findByIdAndUpdate(businessId, updatedUser, {new: true})
-    .then((updatedUser) => {
-      if (!updatedUser) {
-        // Si no se encontró el usuario, responde con un error 404
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      console.log("La propiedad businessId del usuario escaneado se ha actualizado correctamente:", updatedUser);
-      res.status(200).json(updatedUser);
-    })
-    .catch((error) => {
-      console.error("Error al actualizar la propiedad businessId del descuento escaneado:", error);
-      res.status(500).json({ error: "Error al actualizar la propiedad businessId del descuento escaneado." });
-    });
-  }, */
   user_update: async (req, res) => {
     try {
       const userId = req.params._id; // Obtener el ID del usuario desde los parámetros de la solicitud
@@ -312,14 +285,14 @@ const controller = {
         // Si las contraseñas coinciden, generar un token
         //const token = jwt.sign({ userId: user._id, email: user.email }, 'mi_secreto_secreto', { expiresIn: '15m' });
         const token = jwt.sign(
-          { userId: user._id, email: user.email, role: user.role, name: user.name, }, // Añadir el rol del usuario al payload del token
+          { userId: user._id, email: user.email, role: user.role/* , name: user.name, businessName: user.businessName, businessId: user.businessId, businessType: user.businessType */}, // Añadir el rol del usuario al payload del token
           'mi_secreto_secreto',
           { expiresIn: '15m' }
       );
 
         // Enviar una respuesta con el token, el rol del usuario y el id del usuario.
         //res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.isAdmin ? 'admin' : 'user' });
-        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name, businessName: user.businessName, businessId: user.businessId});
+        res.json({ message: "Inicio de sesión exitoso", token, _id: user._id, role: user.role, name: user.name, businessName: user.businessName, businessId: user.businessId, businessType: user.businessType});
 
     } catch (error) {
         console.error("Error al buscar el usuario:", error);
