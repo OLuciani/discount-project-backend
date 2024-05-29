@@ -62,6 +62,8 @@ const controller = {
     try {
       const {
         businessName,
+        businessId,
+        businessType,
         title,
         description,
         discountAmount,
@@ -79,6 +81,8 @@ const controller = {
 
       const newOfferedDiscount = new OfferedDiscount({
         businessName,
+        businessId,
+        businessType,
         title,
         description,
         discountAmount,

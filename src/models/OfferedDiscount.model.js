@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const offeredDiscountSchema = mongoose.Schema({
     businessId: String, // Referencia al negocio
     businessName: String,
+    businessType: String,
     title: String,
     description: String,
     discountAmount: Number,
