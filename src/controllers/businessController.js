@@ -120,7 +120,7 @@ dotenv.config();
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect("mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project")
   .then(() => console.log("Conectado a Base de Datos"))
   .catch((error) => console.error('Error conectando a la base de datos:', error));
 
