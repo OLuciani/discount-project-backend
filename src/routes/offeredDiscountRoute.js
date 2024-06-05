@@ -38,6 +38,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import authenticateToken from "../middlewares/authenticateToken.js";
 import offeredDiscountsController from "../controllers/offeredDiscountsController.js";
 
 const router = express.Router();
@@ -59,6 +60,7 @@ const upload = multer({ storage: storage });
 
 
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
-router.post("/discount_create", upload.single("imageURL"), offeredDiscountsController.discount_create);
+router.get("/discounts_list_one_business/:_id", authenticateToken, offeredDiscountsController.discounts_list_one_business);
+router.post("/discount_create", authenticateToken, upload.single("imageURL"),                   offeredDiscountsController.discount_create);
 
 export default router;

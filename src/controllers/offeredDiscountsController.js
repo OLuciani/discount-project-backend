@@ -23,41 +23,20 @@ const controller = {
         res.status(500).json({ error: "Error al buscar usuarios" });
       });
   },
-  /* discount_create: (req, res) => {
-    const {
-      businessName,
-      title,
-      description,
-      discountAmount,
-      imageURL,
-      validityPeriod,
-      isActive,
-      expirationDate,
-    } = req.body;
-
-    const newOfferedDiscount = new OfferedDiscount({
-      businessName,
-      title,
-      description,
-      discountAmount,
-      imageURL,
-      validityPeriod,
-      isActive,
-      expirationDate,
-    });
-
-    // Guarda al descuento en la base de datos
-    newOfferedDiscount
-      .save()
-      .then((discount) => {
-        // Aquí envío una respuesta de éxito en el registro. 
-        res.json({ message: "El descuento se guardó exitosamente." });
+  discounts_list_one_business: (req, res) => {
+    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    OfferedDiscount.find({ businessId: businessId, isActive: true }) // Busco descuentos por el ID del negocio y que estén activos
+      .then((allDiscounts) => {
+        if (!allDiscounts || allDiscounts.length === 0) { // Manejo el caso si no se encuentran descuentos
+          return res.status(404).json({ message: "Descuentos no encontrados" });
+        }
+        res.json(allDiscounts); // Envío los datos de los descuentos del negocio encontrados como respuesta
       })
       .catch((error) => {
-        // Aquí manejas los errores en caso de que no se pueda guardar el usuario en la base de datos
-        res.status(500).json({ error: "Error en el registro del descuento." });
+        console.error("Error al buscar descuentos del negocio: ", error);
+        res.status(500).json({ error: "Error al buscar descuentos del negocio" });
       });
-  }, */
+  },
   discount_create: async (req, res) => {
     try {
       const {
@@ -66,6 +45,7 @@ const controller = {
         businessType,
         title,
         description,
+        normalPrice,
         discountAmount,
         validityPeriod,
         isActive,
@@ -79,13 +59,24 @@ const controller = {
         imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
       }
 
+      // Convierto normalPrice y discountAmount a números
+      const normalPriceNumber = parseFloat(normalPrice);
+      const discountAmountNumber = parseFloat(discountAmount);
+
+      //Convierto isActive a boolean
+      const isActiveBoolean = (isActive === 'true');
+
+      const newPrice = normalPrice - (normalPrice * discountAmount / 100);
+
       const newOfferedDiscount = new OfferedDiscount({
         businessName,
         businessId,
         businessType,
         title,
         description,
-        discountAmount,
+        normalPrice: normalPriceNumber,
+        priceWithDiscount: newPrice,
+        discountAmount: discountAmountNumber,
         imageURL,
         validityPeriod,
         isActive,

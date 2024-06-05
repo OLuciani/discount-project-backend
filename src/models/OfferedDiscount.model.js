@@ -7,6 +7,8 @@ const offeredDiscountSchema = mongoose.Schema({
     businessType: String,
     title: String,
     description: String,
+    normalPrice: Number,
+    priceWithDiscount: Number,
     discountAmount: Number,
     imageURL: String,
     validityPeriod: Date, //Corroborar si está bien.

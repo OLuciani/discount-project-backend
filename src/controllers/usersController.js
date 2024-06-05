@@ -299,39 +299,6 @@ const controller = {
         res.status(500).json({ message: "Error en la autenticación" });
     }
   },
-  /* checkEmail: async (req, res) => {
-    const email = req.params.email;
-  
-    try {
-      const user = await User.findOne({ email });
-      if (user) {
-        const token = jwt.sign({ email }, "tu_secreto", { expiresIn: "15m" });
-  
-        // Intenta enviar el correo electrónico
-        try {
-          await sendEmail(email, token);
-          res.json({
-            exists: true,
-            success: true,
-            message: "Correo electrónico encontrado",
-            token,
-          });
-        } catch (error) {
-          console.error("Error al enviar el correo electrónico:", error);
-          res.status(500).json({ success: false, message: "Error al enviar el correo electrónico" });
-        }
-      } else {
-        res.json({
-          exists: false,
-          success: false,
-          message: "Correo electrónico no encontrado",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: "Error en el servidor" });
-    }
-  } */
   checkEmail: async (req, res) => {
     const email = req.params.email;
   

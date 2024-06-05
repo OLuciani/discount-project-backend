@@ -1,4 +1,6 @@
-import mongoose from "mongoose";
+/* import mongoose from "mongoose";
+import dotenv from 'dotenv';
+import Business from "../models/Business.model.js";
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
@@ -7,58 +9,11 @@ mongoose
 // Establezco una opción adicional para consultas estrictas
 mongoose.set("strictQuery", true);
 
-import Business from "../models/Business.model.js";
-
 console.log(Business);
 
+dotenv.config();
+
 const controller = {
-  /* business_create: async (req, res) => {
-    try {
-      const {
-        ownerName,
-        businessName,
-        businessType,
-        address,
-        latitude,
-        longitude,
-        ownerId,
-      } = req.body;
-
-      // Obtener la URL del archivo cargado
-      let imageURL = '';
-
-      if (req.file) {
-        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
-      }
-
-      const newBusiness = new Business({
-        ownerName,
-        businessName,
-        businessType,
-        address,
-        latitude,
-        longitude,
-        ownerId,
-        imageURL,
-      });
-
-      const savedBusiness = await newBusiness.save()
-        .then((business) => {
-          
-          // Aquí se envía una respuesta de éxito en el registro del negocio.
-          res.status(200).json({ message: 'El nuevo negocio se guardó exitosamente.', _id: savedBusiness._id });
-        })
-
-      if (!savedBusiness) {
-        throw new Error('Error en el registro del negocio.');
-      }
-
-    } catch (error) {
-      // Aquí manejo los errores en caso de que no se pueda guardar el negocio en la base de datos.
-      console.error('Error en el registro del negocio:', error.message);
-      res.status(500).json({ error: 'Error en el registro del negocio.' });
-    }
-  }, */
   business_create: async (req, res) => {
     try {
       const {
@@ -78,13 +33,42 @@ const controller = {
         imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
       }
 
+
+
+      const apiKey = process.env.HERE_API_KEY 
+
+      if (!address) {
+        return res.status(400).json({ error: 'La dirección del negocio es requerida.' });
+      }
+
+      let busineesLatitude = "";
+      let businessLongitude = "";
+
+      fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${address}&apiKey=${apiKey}`)
+        .then((response) => response.json())
+        .then((data) => { console.log("Valor de position: ", data.items[0].position);
+            if (data.length === 0) {
+              return res.status(404).json({ error: 'No coordinates found for the provided address' });
+            }
+
+            busineesLatitude = data.items[0].position.lat;
+            businessLongitude = data.items[0].position.lng;
+            console.log("Valor de latitud: ", data.items[0].position.lat);
+            console.log("Valor de longitud: ", data.items[0].position.lng);
+
+        })
+
+
+
+
+
       const newBusiness = new Business({
         ownerName,
         businessName,
         businessType,
         address,
-        latitude,
-        longitude,
+        latitude: busineesLatitude,
+        longitude: businessLongitude,
         ownerId,
         imageURL,
       });
@@ -110,6 +94,139 @@ const controller = {
   business_detail: (req, res) => {
     const businessId = req.params._id; // Obtenengo el ID del negocio desde los parámetros de la solicitud
     Business.findById(businessId) // Buscao el negocio por su ID
+      .then((oneBusiness) => {
+        if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
+          return res.status(404).json({ message: "Negocio no encontrado" });
+        }
+        res.json(oneBusiness); // Envío los datos del negocio encontrado como respuesta
+      })
+      .catch((error) => {
+        console.error("Error al buscar el negocio: ", error);
+        res.status(500).json({ error: "Error al buscar el negocio" });
+      });
+  }
+};
+
+export default controller; */
+
+
+
+import mongoose from "mongoose";
+import dotenv from 'dotenv';
+import Business from "../models/Business.model.js";
+//import fetch from 'node-fetch';
+
+dotenv.config();
+
+// Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("Conectado a Base de Datos"))
+  .catch((error) => console.error('Error conectando a la base de datos:', error));
+
+// Establezco una opción adicional para consultas estrictas
+mongoose.set("strictQuery", true);
+
+const controller = {
+  business_create: async (req, res) => {
+    try {
+      const {
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        city,
+        country,
+        ownerId,
+      } = req.body;
+
+       // Validar campos obligatorios
+       if (!ownerName || !businessName || !businessType || !address || !city || !country || !ownerId) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+      }
+
+      // Obtener la URL del archivo cargado
+      let imageURL = '';
+      if (req.file) {
+        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
+      }
+
+      const apiKey = process.env.HERE_API_KEY;
+      const fullAddress = `${address}, ${city}. ${country}`;
+
+       // Verificar si la clave API está configurada
+       if (!apiKey) {
+        return res.status(500).json({ error: 'API Key para geocodificación no configurada.' });
+      }
+
+      // Realizo la solicitud a la API de geocodificación
+      const response = await fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${fullAddress}&apiKey=${apiKey}`);
+      
+      /* const data = await response.json();
+
+      console.log("Valor de position: ", data.items[0].position);
+      if (data.items.length === 0) {
+        return res.status(404).json({ error: 'No coordinates found for the provided address' });
+      } */
+
+      if (!response.ok) {
+        return res.status(500).json({ error: 'Error al comunicarse con el servicio de geocodificación.' });
+      }
+
+      const data = await response.json();
+
+      if (data.items.length === 0) {
+        return res.status(404).json({ error: 'No se encontraron coordenadas para la dirección proporcionada.' });
+      }
+
+
+      const busineesLatitude = data.items[0].position.lat;
+      const businessLongitude = data.items[0].position.lng;
+
+      //console.log("Valor de latitud: ", busineesLatitude);
+      //console.log("Valor de longitud: ", businessLongitude);
+
+      const newBusiness = new Business({
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        city,
+        country,
+        latitude: busineesLatitude,
+        longitude: businessLongitude,
+        ownerId,
+        imageURL,
+      });
+
+      const savedBusiness = await newBusiness.save();
+      
+      res.status(200).json({ message: 'El nuevo negocio se guardó exitosamente.', _id: savedBusiness._id, businessType: savedBusiness.businessType });
+
+    } catch (error) {
+      // Aquí manejo los errores en caso de que no se pueda guardar el negocio en la base de datos.
+      console.error('Error en el registro del negocio:', error.message);
+      res.status(500).json({ error: 'Error en el registro del negocio.' });
+
+      // Gestión de errores más específica
+      if (error.name === 'ValidationError') {
+        res.status(400).json({ error: 'Datos de entrada inválidos.' });
+      } else {
+        res.status(500).json({ error: 'Error en el registro del negocio.' });
+      }
+    }
+  },
+  business_list: (req, res) => {
+    Business.find()
+    .then((allBusiness) => res.json(allBusiness))
+    .catch((error) => {
+      console.error("Error al buscar negocios: ", error);
+      res.status(500).json({ error: "Error al buscar negocios"});
+    });
+  },
+  business_detail: (req, res) => {
+    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    Business.findById(businessId) // Busco el negocio por su ID
       .then((oneBusiness) => {
         if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
           return res.status(404).json({ message: "Negocio no encontrado" });

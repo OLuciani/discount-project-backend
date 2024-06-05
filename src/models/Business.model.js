@@ -24,6 +24,8 @@ const businessSchema = mongoose.Schema({
     businessName: String,
     businessType: String,
     address: String,
+    city: String,
+    country: String,
     latitude: {
         type: Number,
         get: v => {
