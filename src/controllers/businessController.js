@@ -116,6 +116,11 @@ import dotenv from 'dotenv';
 import Business from "../models/Business.model.js";
 //import fetch from 'node-fetch';
 
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import fs from "fs/promises"; // Importar fs para operaciones de sistema de archivos
+
 dotenv.config();
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
@@ -126,6 +131,9 @@ mongoose
 
 // Establezco una opción adicional para consultas estrictas
 mongoose.set("strictQuery", true);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const controller = {
   business_create: async (req, res) => {
@@ -237,7 +245,75 @@ const controller = {
         console.error("Error al buscar el negocio: ", error);
         res.status(500).json({ error: "Error al buscar el negocio" });
       });
+  }, 
+  update_business: async (req, res) => {
+    const businessId = req.params._id;
+    const { businessName, address, city, country, businessType} = req.body;
+
+    let imageURL = "";
+
+      const existingBusiness = await Business.findById(businessId);
+      if (existingBusiness) {
+        imageURL = existingBusiness.imageURL;
+      }
+
+      if (req.file) {
+        imageURL = "img/" + req.file.filename;
+
+        if (existingBusiness && imageURL !== existingBusiness.imageURL) {
+          const existingImagePath = path.join(
+            __dirname,
+            "../../public",
+            existingBusiness.imageURL
+          );
+
+          try {
+            await fs.unlink(existingImagePath);
+            console.log(
+              "Imagen anterior eliminada:",
+              existingBusiness.imageURL
+            );
+          } catch (error) {
+            console.error("Error al eliminar la imagen anterior:", error);
+          }
+        }
+      }
+    //console.log("valor de address: ", address);
+  
+    // Validar campos obligatorios
+    if (req.body.length === 0) {
+      return res.status(400).json({ error: 'No hay campos para actualizar.' });
+    }
+  
+    try {
+      // Buscar el negocio por su ID y actualizarlo
+      const updatedBusiness = await Business.findByIdAndUpdate(
+        businessId,
+        {businessName: businessName, 
+          address: address, 
+          city: city, 
+          country: country, 
+          businessType: businessType, 
+          imageURL
+        }, 
+        { new: true, runValidators: true });
+  
+      if (!updatedBusiness) {
+        return res.status(404).json({ message: "Negocio no encontrado" });
+      }
+  
+      res.status(200).json({ message: 'Negocio actualizado exitosamente.', business: updatedBusiness });
+    } catch (error) {
+      console.error('Error al actualizar el negocio:', error);
+  
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Datos de entrada inválidos.', details: error.errors });
+      } else {
+        return res.status(500).json({ error: 'Error al actualizar el negocio.' });
+      }
+    }
   }
+  
 };
 
 export default controller;

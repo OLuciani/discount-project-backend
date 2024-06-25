@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import businessController from "../controllers/businessController.js";  //Hay que poner si o si .js
+import authenticateToken from "../middlewares/authenticateToken.js";
 
 const router = express.Router();
 
@@ -24,7 +25,8 @@ const upload = multer({ storage: storage });
 
 
 router.post("/business_create", upload.single("imageURL"), businessController.business_create);
+router.get("/business_detail/:_id", authenticateToken, businessController.business_detail);
 router.get("/business_list", businessController.business_list);
-router.get("/business_detail/:_id", businessController.business_detail);
+router.patch("/update_business/:_id", authenticateToken, upload.single("imageURL"), businessController.update_business);
 
 export default router;
