@@ -13,7 +13,7 @@ import UserDiscountQr from "../models/UserDiscountQr.model.js";
 console.log(UserDiscountQr);
 
 const controller = {
-    userDiscountQrs_list: (req, res) => {
+  userDiscountQrs_list: (req, res) => {
     UserDiscountQr.find()
     .then((allDiscountQrs) => res.json(allDiscountQrs))
     .catch((error) => {

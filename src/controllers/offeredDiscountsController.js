@@ -21,8 +21,31 @@ console.log(OfferedDiscount);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Función para desactivar los descuentos expirados
+export const deactivateExpiredDiscounts = async () => {
+  try {
+    const now = new Date();
+    const expiredDiscounts = await OfferedDiscount.find({
+      expirationDate: { $lt: now },
+      isActive: true, // Solo descuentos activos
+    });
+
+    for (const discount of expiredDiscounts) {
+      discount.isActive = false;
+      await discount.save();
+    }
+
+    console.log(`Se desactivaron ${expiredDiscounts.length} descuentos expirados.`);
+  } catch (error) {
+    console.error("Error al desactivar descuentos expirados:", error);
+  }
+};
+
+// Llama a la función cada hora para desactivar los descuentos expirados.
+setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Ejecutar cada hora
+
 const controller = {
-  discount_create: async (req, res) => {
+  /* discount_create: async (req, res) => {
     try {
       const {
         businessName,
@@ -54,7 +77,7 @@ const controller = {
       //Convierto isActive a boolean
       const isActiveBoolean = isActive === "true";
 
-      /* const newPrice = normalPrice - (normalPrice * discountAmount / 100); */
+      //const newPrice = normalPrice - (normalPrice * discountAmount / 100);
 
       // Calcular el precio con descuento
       const newPrice = normalPriceNumber
@@ -90,7 +113,146 @@ const controller = {
       console.error("Error en el registro del descuento:", error.message);
       res.status(500).json({ error: "Error en el registro del descuento." });
     }
-  },
+  }, */
+  //Esta version de discount_create funcionaba bien
+  /* discount_create: async (req, res) => {
+    try {
+      const {
+        businessName,
+        businessId,
+        businessType,
+        title,
+        description,
+        normalPrice,
+        discountAmount,
+        validityPeriod,
+        isActive,
+        expirationDate,
+      } = req.body;
+  
+      let imageURL = "";
+  
+      if (req.file) {
+        imageURL = "img/" + req.file.filename;
+      }
+  
+      console.log("Valor de normalPrice: ", normalPrice);
+      console.log("Valor de discountAmount: ", discountAmount);
+  
+      const normalPriceNumber = new Decimal(normalPrice);
+      const discountAmountNumber = new Decimal(discountAmount);
+  
+      if (!normalPriceNumber.isFinite() || !discountAmountNumber.isFinite()) {
+        return res.status(400).json({ error: "Valores de precio o descuento no válidos" });
+      }
+  
+      const isActiveBoolean = isActive === "true";
+  
+      const newPrice = normalPriceNumber
+        .times(1 - discountAmountNumber.div(100))
+        .toDecimalPlaces(2)
+        .toNumber();
+  
+      const newOfferedDiscount = new OfferedDiscount({
+        businessName,
+        businessId,
+        businessType,
+        title,
+        description,
+        normalPrice: normalPriceNumber.toNumber(),
+        priceWithDiscount: newPrice,
+        discountAmount: discountAmountNumber.toNumber(),
+        imageURL,
+        validityPeriod: validityPeriod ? Number(validityPeriod) : undefined, // Almacenar solo si está presente
+        isActive: isActiveBoolean,
+        expirationDate,
+      });
+  
+      const savedDiscount = await newOfferedDiscount.save();
+  
+      if (!savedDiscount) {
+        throw new Error("Error en el registro del descuento.");
+      }
+  
+      res.status(200).json({ message: "El descuento se guardó exitosamente." });
+    } catch (error) {
+      console.error("Error en el registro del descuento:", error.message);
+      res.status(500).json({ error: "Error en el registro del descuento." });
+    }
+  }, */  
+  discount_create: async (req, res) => {
+    try {
+      const {
+        businessName,
+        businessId,
+        businessType,
+        title,
+        description,
+        normalPrice,
+        discountAmount,
+        validityPeriod,
+        isActive,
+      } = req.body;
+  
+      let imageURL = "";
+  
+      if (req.file) {
+        imageURL = "img/" + req.file.filename;
+      }
+  
+      console.log("Valor de normalPrice: ", normalPrice);
+      console.log("Valor de discountAmount: ", discountAmount);
+  
+      const normalPriceNumber = new Decimal(normalPrice);
+      const discountAmountNumber = new Decimal(discountAmount);
+  
+      if (!normalPriceNumber.isFinite() || !discountAmountNumber.isFinite()) {
+        return res.status(400).json({ error: "Valores de precio o descuento no válidos" });
+      }
+  
+      const isActiveBoolean = isActive === "true";
+  
+      const newPrice = normalPriceNumber
+        .times(1 - discountAmountNumber.div(100))
+        .toDecimalPlaces(2)
+        .toNumber();
+  
+      const now = new Date();
+      const startDateTime = now;
+      const durationDays = validityPeriod ? Number(validityPeriod) : null;
+      const expirationDate = durationDays
+        ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+  
+      const newOfferedDiscount = new OfferedDiscount({
+        businessName,
+        businessId,
+        businessType,
+        title,
+        description,
+        normalPrice: normalPriceNumber.toNumber(),
+        priceWithDiscount: newPrice,
+        discountAmount: discountAmountNumber.toNumber(),
+        imageURL,
+        validityPeriod: durationDays,
+        isActive: isActiveBoolean,
+        startDateTime,
+        durationDays,
+        expirationDate,
+      });
+  
+      const savedDiscount = await newOfferedDiscount.save();
+  
+      if (!savedDiscount) {
+        throw new Error("Error en el registro del descuento.");
+      }
+  
+      res.status(200).json({ message: "El descuento se guardó exitosamente." });
+    } catch (error) {
+      console.error("Error en el registro del descuento:", error.message);
+      res.status(500).json({ error: "Error en el registro del descuento." });
+    }
+  }, 
   discounts_list: (req, res) => {
     //OfferedDiscount.find()
     OfferedDiscount.find({ isDeleted: false }) // Filtra descuentos que no están eliminados lógicamente
@@ -154,24 +316,24 @@ const controller = {
         isActive,
         expirationDate,
       } = req.body;
-
+  
       let imageURL = "";
-
+  
       const existingDiscount = await OfferedDiscount.findById(_id);
       if (existingDiscount) {
         imageURL = existingDiscount.imageURL;
       }
-
+  
       if (req.file) {
         imageURL = "img/" + req.file.filename;
-
+  
         if (existingDiscount && imageURL !== existingDiscount.imageURL) {
           const existingImagePath = path.join(
             __dirname,
             "../../public",
             existingDiscount.imageURL
           );
-
+  
           try {
             await fs.unlink(existingImagePath);
             console.log(
@@ -183,15 +345,22 @@ const controller = {
           }
         }
       }
-
+  
       const normalPriceNumber = new Decimal(normalPrice);
       const discountAmountNumber = new Decimal(discountAmount);
       const isActiveBoolean = isActive === "true";
+  
+      if (!normalPriceNumber.isFinite() || !discountAmountNumber.isFinite()) {
+        return res.status(400).json({ error: "Valores de precio o descuento no válidos" });
+      }
+
+      console.log("Valor de normalPrice antes de aplicarle el descuento: ", normalPrice);
+  
       const newPrice = normalPriceNumber
         .times(1 - discountAmountNumber.div(100))
         .toDecimalPlaces(2)
         .toNumber();
-
+  
       const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
         _id,
         {
@@ -210,52 +379,20 @@ const controller = {
         },
         { new: true }
       );
-
+  
       if (!updatedDiscount) {
         return res.status(404).json({ message: "Descuento no encontrado" });
       }
-
-      res
-        .status(200)
-        .json({
-          message: "Descuento actualizado correctamente",
-          discount: updatedDiscount,
-        });
+  
+      res.status(200).json({
+        message: "Descuento actualizado correctamente",
+        discount: updatedDiscount,
+      });
     } catch (error) {
       console.error("Error al actualizar el descuento:", error.message);
       res.status(500).json({ error: "Error al actualizar el descuento" });
     }
   },
-  /*  discount_delete: async (req, res) => {
-    try {
-        // Obtengo el ID del descuento desde los parámetros de la solicitud
-        const discountId = req.params._id;
-
-        // Verifico si el ID del descuento es válido
-        if (!discountId) {
-            return res.status(400).json({ message: "ID de descuento es requerido" });
-        }
-
-        // Busco y actualizo el descuento para marcarlo como eliminado
-        const deletedDiscount = await OfferedDiscount.findByIdAndUpdate(
-            discountId,
-            { isDeleted: true },
-            { new: true }
-        );
-
-        // Si no se encuentra el descuento, devuelvo un error 404
-        if (!deletedDiscount) {
-            return res.status(404).json({ message: "Descuento no encontrado" });
-        }
-
-        // Si todo va bien, devuelvo una respuesta de éxito
-        res.status(200).json({ message: 'Descuento eliminado correctamente', discount: deletedDiscount });
-    } catch (error) {
-        // Capturo cualquier error inesperado y devuelvo una respuesta de error 500
-        console.error(error);
-        res.status(500).json({ success: true, message: "Error al eliminar el descuento", error: error.message });
-    }
-} */
   discount_delete: async (req, res) => {
     try {
       // Obtengo el ID del descuento desde los parámetros de la solicitud

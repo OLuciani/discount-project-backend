@@ -10,7 +10,7 @@ const offeredDiscountSchema = mongoose.Schema({
   priceWithDiscount: Number,
   discountAmount: Number,
   imageURL: String,
-  validityPeriod: Date, //Corroborar si está bien.
+  validityPeriod: { type: Number, default: null }, // Campo opcional
   isActive: Boolean,
   isDeleted: {
     type: Boolean,
@@ -20,7 +20,19 @@ const offeredDiscountSchema = mongoose.Schema({
     type: Date,
     default: null,
   },
-  expirationDate: Date,
+  startDateTime: { type: Date }, // Fecha y hora de inicio del descuento (opcional)
+  durationDays: { type: Number }, // Duración en días del descuento (opcional)
+  expirationDate: {
+    type: Date,
+    default: function () {
+      if (this.startDateTime && this.durationDays) {
+        const expirationDate = new Date(this.startDateTime);
+        expirationDate.setDate(expirationDate.getDate() + this.durationDays);
+        return expirationDate;
+      }
+      return null;
+    },
+  },
 });
 
 const OfferedDiscount = mongoose.model(
