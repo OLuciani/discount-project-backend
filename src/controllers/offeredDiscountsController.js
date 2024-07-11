@@ -32,6 +32,7 @@ export const deactivateExpiredDiscounts = async () => {
 
     for (const discount of expiredDiscounts) {
       discount.isActive = false;
+      discount.isDeleted = true;
       await discount.save();
     }
 
@@ -41,8 +42,8 @@ export const deactivateExpiredDiscounts = async () => {
   }
 };
 
-// Llama a la función cada hora para desactivar los descuentos expirados.
-setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Ejecutar cada hora
+// Llamo a la función cada hora para desactivar los descuentos expirados.
+setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Se ejecuta cada 1 hora
 
 const controller = {
   /* discount_create: async (req, res) => {

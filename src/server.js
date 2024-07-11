@@ -69,10 +69,10 @@ mongoose.connect(
 ).then(() => {
   console.log("Conectado a la Base de Datos MongoDB");
 
-  // Llamar a la función para desactivar descuentos expirados al iniciar la aplicación
+  // Llamo a la función para desactivar descuentos expirados al iniciar la aplicación
   deactivateExpiredDiscounts();
 
-  // Llamar a la función periódicamente, por ejemplo cada hora
+  // Llamo a la función periódicamente cada hora
   setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Ejecutar cada hora
 }).catch((error) => {
   console.error("Error de conexión a la Base de Datos MongoDB:", error);
