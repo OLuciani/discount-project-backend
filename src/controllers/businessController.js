@@ -225,13 +225,14 @@ const controller = {
         businessName,
         businessType,
         address,
+        addressNumber,
         city,
         country,
         ownerId,
       } = req.body;
   
       // Validar campos obligatorios
-      if (!ownerName || !businessName || !businessType || !address || !city || !country || !ownerId) {
+      if (!ownerName || !businessName || !businessType || !address || !addressNumber || !city || !country || !ownerId) {
         return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
       }
   
@@ -242,12 +243,13 @@ const controller = {
       }
   
       const apiKey = process.env.HERE_API_KEY;
-      const fullAddress = `${address}, ${city}, ${country}`;
   
       // Verificar si la clave API está configurada
       if (!apiKey) {
         return res.status(500).json({ error: 'API Key para geocodificación no configurada.' });
       }
+  
+      const fullAddress = `${address} ${addressNumber}, ${city}, ${country}`;
   
       // Realizo la solicitud a la API de geocodificación
       const response = await fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${apiKey}`);
@@ -263,7 +265,7 @@ const controller = {
       }
   
       const position = data.items[0].position;
-      const busineesLatitude = position.lat;
+      const businessLatitude = position.lat;
       const businessLongitude = position.lng;
   
       const newBusiness = new Business({
@@ -271,9 +273,10 @@ const controller = {
         businessName,
         businessType,
         address,
+        addressNumber,
         city,
         country,
-        latitude: busineesLatitude,
+        latitude: businessLatitude,
         longitude: businessLongitude,
         ownerId,
         imageURL,
