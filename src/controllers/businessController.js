@@ -136,7 +136,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const controller = {
-  business_create: async (req, res) => {
+  /* business_create: async (req, res) => {
     try {
       const {
         ownerName,
@@ -170,12 +170,6 @@ const controller = {
       // Realizo la solicitud a la API de geocodificación
       const response = await fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${fullAddress}&apiKey=${apiKey}`);
       
-      /* const data = await response.json();
-
-      console.log("Valor de position: ", data.items[0].position);
-      if (data.items.length === 0) {
-        return res.status(404).json({ error: 'No coordinates found for the provided address' });
-      } */
 
       if (!response.ok) {
         return res.status(500).json({ error: 'Error al comunicarse con el servicio de geocodificación.' });
@@ -223,7 +217,82 @@ const controller = {
         res.status(500).json({ error: 'Error en el registro del negocio.' });
       }
     }
-  },
+  }, */
+  business_create: async (req, res) => {
+    try {
+      const {
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        city,
+        country,
+        ownerId,
+      } = req.body;
+  
+      // Validar campos obligatorios
+      if (!ownerName || !businessName || !businessType || !address || !city || !country || !ownerId) {
+        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
+      }
+  
+      // Obtener la URL del archivo cargado
+      let imageURL = '';
+      if (req.file) {
+        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
+      }
+  
+      const apiKey = process.env.HERE_API_KEY;
+      const fullAddress = `${address}, ${city}, ${country}`;
+  
+      // Verificar si la clave API está configurada
+      if (!apiKey) {
+        return res.status(500).json({ error: 'API Key para geocodificación no configurada.' });
+      }
+  
+      // Realizo la solicitud a la API de geocodificación
+      const response = await fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${apiKey}`);
+      
+      if (!response.ok) {
+        return res.status(500).json({ error: 'Error al comunicarse con el servicio de geocodificación.' });
+      }
+  
+      const data = await response.json();
+  
+      if (data.items.length === 0) {
+        return res.status(404).json({ error: 'No se encontraron coordenadas para la dirección proporcionada.' });
+      }
+  
+      const position = data.items[0].position;
+      const busineesLatitude = position.lat;
+      const businessLongitude = position.lng;
+  
+      const newBusiness = new Business({
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        city,
+        country,
+        latitude: busineesLatitude,
+        longitude: businessLongitude,
+        ownerId,
+        imageURL,
+      });
+  
+      const savedBusiness = await newBusiness.save();
+      
+      res.status(200).json({ message: 'El nuevo negocio se guardó exitosamente.', _id: savedBusiness._id, businessType: savedBusiness.businessType });
+  
+    } catch (error) {
+      console.error('Error en el registro del negocio:', error.message);
+  
+      if (error.name === 'ValidationError') {
+        res.status(400).json({ error: 'Datos de entrada inválidos.' });
+      } else {
+        res.status(500).json({ error: 'Error en el registro del negocio.' });
+      }
+    }
+  },  
   business_list: (req, res) => {
     Business.find()
     .then((allBusiness) => res.json(allBusiness))

@@ -256,7 +256,7 @@ const controller = {
   }, 
   discounts_list: (req, res) => {
     //OfferedDiscount.find()
-    OfferedDiscount.find({ isDeleted: false }) // Filtra descuentos que no están eliminados lógicamente
+    OfferedDiscount.find({ isDeleted: false, isActive: true }) // Filtra descuentos que no están eliminados lógicamente
       .then((allDiscounts) => res.json(allDiscounts))
       .catch((error) => {
         console.error("Error al buscar usuarios: ", error);
