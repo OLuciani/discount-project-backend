@@ -66,7 +66,7 @@ const sendMongoEmail = async (email, token) => {
 const sendMobileMongoEmail = async (email, token) => {
   try {
     // Usa http o https en lugar de exp:// para el enlace
-    const resetLink = `http://192.168.100.2:8081/--/PasswordResetForm?token=${token}&email=${email}`;
+    const resetLink = `exp://192.168.100.2:8081/--/PasswordResetForm?token=${token}&email=${email}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
