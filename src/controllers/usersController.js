@@ -40,7 +40,7 @@ const sendMongoEmail = async (email, token) => {
 };
 
 // Método para enviar correo electrónico para cambiar password desde el backend a usuarios desde aplicación movil.
-const sendMobileMongoEmail = async (email, token) => {
+/* const sendMobileMongoEmail = async (email, token) => {
   try {
     const resetLink = `exp://192.168.100.2:8081/--/PasswordResetForm?token=${token}&email=${email}`;
 
@@ -53,6 +53,29 @@ const sendMobileMongoEmail = async (email, token) => {
         <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
         <p><a href="${resetLink}" style="color: blue; text-decoration: underline;">Restablecer contraseña</a></p>
         <p>Si tienes problemas con el enlace, por favor contacta con el soporte técnico.</p>
+      `,
+    };
+
+    // Enviar el correo electrónico
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Error al enviar correo electrónico:', error);
+  }
+}; */
+
+const sendMobileMongoEmail = async (email, token) => {
+  try {
+    // Usa http o https en lugar de exp:// para el enlace
+    const resetLink = `http://192.168.100.2:8081/--/PasswordResetForm?token=${token}&email=${email}`;
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: email,
+      subject: "Solicitud de restablecimiento de contraseña",
+      html: `
+        <h5>Se ha solicitado un restablecimiento de contraseña.</h5>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
       `,
     };
 
