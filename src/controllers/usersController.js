@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Método para enviar correo electrónico desde MongoDB
+// Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
 const sendMongoEmail = async (email, token) => {
   try {
     const resetLink = `http://localhost:8081/passwordReset?token=${token}&email=${email}`;
@@ -38,6 +38,30 @@ const sendMongoEmail = async (email, token) => {
     throw error;
   }
 };
+
+// Método para enviar correo electrónico para cambiar password desde el backend a usuarios desde aplicación movil.
+const sendMovilMongoEmail = async (email, token) => {
+  try {
+    const resetLink = `exp://192.168.100.2:8081/--/passwordReset?token=${token}&email=${email}`;
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: email,
+      subject: "Solicitud de restablecimiento de contraseña",
+      html: `
+        <h5>Se ha solicitado un restablecimiento de contraseña.</h5>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
+
+    // Enviar el correo electrónico
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Error al enviar correo electrónico:', error);
+  }
+};
+  
 
 const controller = {
   user_detail: (req, res) => {
@@ -180,63 +204,6 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
   },
- /*  login: async (req, res) => {
-    const { email, password } = req.body;
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log("Errores de validación:", errors.array());
-      return res.status(400).json({ errors: errors.array() });
-    }
-
-    try {
-      const normalizedEmail = email.toLowerCase();
-
-      console.log("Intentando iniciar sesión con:", normalizedEmail);
-
-      const user = await User.findOne({ email: normalizedEmail });
-
-      if (!user) {
-        console.log("Usuario no registrado:", normalizedEmail);
-        return res.status(401).json({ message: "Usuario no registrado" });
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-        return res.status(401).json({ message: "Contraseña incorrecta" });
-      }
-
-      const token = jwt.sign(
-        { userId: user._id, email: user.email, role: user.role },
-        "mi_secreto_secreto",
-        { expiresIn: "15m" }
-      );
-
-      console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 15 * 60 * 1000, // 15 minutos
-      });
-
-      res.json({
-        message: "Inicio de sesión exitoso",
-        token,
-        _id: user._id,
-        role: user.role,
-        name: user.name,
-        businessName: user.businessName,
-        businessId: user.businessId,
-        businessType: user.businessType,
-        originalEmail: user.originalEmail, // Devolver el email original si es necesario
-      });
-    } catch (error) {
-      console.error("Error al buscar el usuario:", error);
-      res.status(500).json({ message: "Error en la autenticación" });
-    }
-  }, */
   login: async (req, res) => {
     const { email, password } = req.body;
   
@@ -295,6 +262,38 @@ const controller = {
     }
   },
   checkEmail: async (req, res) => {
+    const email = req.params.email.toLowerCase();
+
+    try {
+      console.log("Verificando email:", email);
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        console.log(
+          "Usuario no encontrado en la base de datos, pero se enviará el correo de restablecimiento de contraseña."
+        );
+      }
+
+      const token = jwt.sign({ email }, "mi_secreto_secreto", {
+        expiresIn: "15m",
+      });
+
+      await sendMongoEmail(email, token);
+      console.log("Correo electrónico de restablecimiento enviado a:", email);
+
+      res.json({
+        exists: !!user,
+        success: true,
+        message:
+          "Correo electrónico de restablecimiento de MongoDB enviado correctamente",
+        token,
+      });
+    } catch (error) {
+      console.error("Error al enviar el correo electrónico de MongoDB:", error);
+      res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+  },
+  checkEmailFromMobile: async (req, res) => {
     const email = req.params.email.toLowerCase();
 
     try {
