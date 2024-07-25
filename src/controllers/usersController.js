@@ -51,7 +51,8 @@ const sendMobileMongoEmail = async (email, token) => {
       html: `
         <h5>Se ha solicitado un restablecimiento de contraseña.</h5>
         <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
-        <p><a href="${resetLink}">${resetLink}</a></p>
+        <p><a href="${resetLink}" style="color: blue; text-decoration: underline;">Restablecer contraseña</a></p>
+        <p>Si tienes problemas con el enlace, por favor contacta con el soporte técnico.</p>
       `,
     };
 
@@ -61,6 +62,7 @@ const sendMobileMongoEmail = async (email, token) => {
     console.error('Error al enviar correo electrónico:', error);
   }
 };
+
   
 
 const controller = {
