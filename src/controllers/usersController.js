@@ -40,9 +40,9 @@ const sendMongoEmail = async (email, token) => {
 };
 
 // Método para enviar correo electrónico para cambiar password desde el backend a usuarios desde aplicación movil.
-const sendMovilMongoEmail = async (email, token) => {
+const sendMobileMongoEmail = async (email, token) => {
   try {
-    const resetLink = `exp://192.168.100.2:8081/--/passwordReset?token=${token}&email=${email}`;
+    const resetLink = `exp://192.168.100.2:8081/--/PasswordResetForm?token=${token}&email=${email}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
@@ -310,7 +310,7 @@ const controller = {
         expiresIn: "15m",
       });
 
-      await sendMongoEmail(email, token);
+      await sendMobileMongoEmail(email, token);
       console.log("Correo electrónico de restablecimiento enviado a:", email);
 
       res.json({
