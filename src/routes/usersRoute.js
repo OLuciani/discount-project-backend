@@ -16,7 +16,7 @@ router.patch("/user_update/:_id", authenticateToken, usersController.user_update
 router.post("/login", validationsLogin, usersController.login);
 router.get("/checkEmail/:email", usersController.checkEmail); //No debe llevar authenticateToken
 router.get("/checkEmailFromMobile/:email", usersController.checkEmailFromMobile); //No debe llevar authenticateToken
-router.patch('/resetPassword', authenticateToken, usersController.resetPassword);
+router.patch('/resetPassword', usersController.resetPassword);
 //router.post("/sendResetFirebaseEmail", usersController.sendResetFirebaseEmail);//Ruta para enviar el mail con el token de firebase al usuario.
 
 export default router;
