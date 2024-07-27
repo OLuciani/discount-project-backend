@@ -374,7 +374,7 @@ const controller = {
         return res.status(404).json({ message: "Negocio no encontrado" });
       }
   
-      res.status(200).json({ message: 'Negocio actualizado exitosamente.', business: updatedBusiness });
+      res.status(200).json({ message: 'Negocio actualizado exitosamente.', updatedBusiness: updatedBusiness });
     } catch (error) {
       console.error('Error al actualizar el negocio:', error);
   

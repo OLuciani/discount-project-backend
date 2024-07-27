@@ -23,7 +23,8 @@ app.use(express.json());
 
 // Middleware para habilitar CORS
 app.use(cors({
-  origin: 'http://localhost:8081',
+  //origin: 'http://localhost:8081',
+  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -31,7 +32,8 @@ app.use(cors({
 
 // Manejo de preflight requests
 app.options('*', cors({
-  origin: 'http://localhost:8081',
+  //origin: 'http://localhost:8081',
+  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
