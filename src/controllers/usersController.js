@@ -18,7 +18,8 @@ const transporter = nodemailer.createTransport({
 // Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
 const sendMongoEmail = async (email, token) => {
   try {
-    const resetLink = `http://localhost:8081/passwordReset?token=${token}&email=${email}`;
+    //const resetLink = `http://localhost:8081/passwordReset?token=${token}&email=${email}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/passwordReset?token=${token}&email=${email}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
