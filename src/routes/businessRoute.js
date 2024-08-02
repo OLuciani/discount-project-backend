@@ -1,14 +1,15 @@
 import express from "express";
-import multer from "multer";
-import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+//import multer from "multer";
+//import path from "path";
+//import { fileURLToPath } from 'url';
+//import { dirname } from 'path';
 import businessController from "../controllers/businessController.js";  //Hay que poner si o si .js
 import authenticateToken from "../middlewares/authenticateToken.js";
+import { upload, processImage } from "../middlewares/multerSharpMiddleware.js";
 
 const router = express.Router();
 
-const __filename = fileURLToPath(import.meta.url);
+/* const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Configuración de multer para el manejo de imágenes
@@ -21,12 +22,12 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage }); */
 
 
-router.post("/business_create", upload.single("imageURL"), businessController.business_create);
+router.post("/business_create", upload.single("imageURL"), processImage, businessController.business_create);
 router.get("/business_detail/:_id", businessController.business_detail);
 router.get("/business_list", businessController.business_list);
-router.patch("/update_business/:_id", authenticateToken, upload.single("imageURL"), businessController.update_business);
+router.patch("/update_business/:_id", authenticateToken, upload.single("imageURL"), processImage, businessController.update_business);
 
 export default router;

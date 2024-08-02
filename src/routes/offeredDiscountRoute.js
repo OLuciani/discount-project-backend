@@ -34,17 +34,18 @@ export default router; */
 
 
 import express from "express";
-import multer from "multer";
-import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+//import multer from "multer";
+//import path from "path";
+//import { fileURLToPath } from 'url';
+//import { dirname } from 'path';
 import authenticateToken from "../middlewares/authenticateToken.js";
 import offeredDiscountsController from "../controllers/offeredDiscountsController.js";
+import { upload, processImage } from "../middlewares/multerSharpMiddleware.js";
 
 
 const router = express.Router();
 
-const __filename = fileURLToPath(import.meta.url);
+/* const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Configuración de multer para el manejo de imágenes
@@ -57,10 +58,10 @@ const storage = multer.diskStorage({
     },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: storage }); */
 
 
-router.post("/discount_create", authenticateToken, upload.single("imageURL"),                   offeredDiscountsController.discount_create);
+router.post("/discount_create", authenticateToken, upload.single("imageURL"), processImage, offeredDiscountsController.discount_create);
 
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
 
@@ -68,7 +69,7 @@ router.get("/discounts_list_one_business/:_id", authenticateToken, offeredDiscou
 
 router.get("/discount_detail/:_id", authenticateToken, offeredDiscountsController.discount_detail);
 
-router.patch("/discount_update/:_id", authenticateToken, upload.single("imageURL"), offeredDiscountsController.discount_update);
+router.patch("/discount_update/:_id", authenticateToken, upload.single("imageURL"), processImage, offeredDiscountsController.discount_update);
 
 router.delete("/discount_delete/:_id", authenticateToken, offeredDiscountsController.discount_delete);
 

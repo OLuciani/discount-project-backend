@@ -238,8 +238,11 @@ const controller = {
   
       // Obtener la URL del archivo cargado
       let imageURL = '';
-      if (req.file) {
+      /* if (req.file) {
         imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
+      } */
+      if (req.file && req.file.processedFilePath) {
+        imageURL = "img/" + req.file.processedFilePath;
       }
   
       const apiKey = process.env.HERE_API_KEY;
@@ -329,8 +332,10 @@ const controller = {
         imageURL = existingBusiness.imageURL;
       }
 
-      if (req.file) {
-        imageURL = "img/" + req.file.filename;
+      /* if (req.file) {
+        imageURL = "img/" + req.file.filename; */
+        if (req.file && req.file.processedFilePath) {
+          imageURL = "img/" + req.file.processedFilePath;
 
         if (existingBusiness && imageURL !== existingBusiness.imageURL) {
           const existingImagePath = path.join(

@@ -265,13 +265,33 @@ const controller = {
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-  
-      res.cookie('token', token, {
+       
+      //Esta es la que utilicé con el frontend web desplegado en vercel y funcionaba bien
+      /* res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'None',
         maxAge: 15 * 60 * 1000, // 15 minutos
+      }); */
+
+      //Configuación para desarrollo
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false, // `false` en desarrollo
+        sameSite: 'Lax', // `Lax` en desarrollo
+        maxAge: 15 * 60 * 1000, // 15 minutos
       });
+
+
+      //Configuación para producción
+      /* res.cookie('token', token, {
+        httpOnly: true,
+        secure: true, // `true` en producción
+        sameSite: 'None', // `None` en producción
+        maxAge: 15 * 60 * 1000, // 15 minutos
+      }); */
+      
+      
   
       res.json({
         message: "Inicio de sesión exitoso",

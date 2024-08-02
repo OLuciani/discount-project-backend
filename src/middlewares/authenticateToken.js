@@ -36,6 +36,7 @@ import jwt from 'jsonwebtoken';
 const authenticateToken = (req, res, next) => {
   //const token = req.cookies.token;
   const token = req.cookies.token || req.headers['authorization']; //De esta manera tomo el token que viene en una cookie de la aplicación web o el token que viene en el heders de la aplición movil.
+  console.log("Token recibido:", token); // Log para verificar el token
   
   if (!token) {
     return res.status(401).json({ message: "Access denied, no token provided" });

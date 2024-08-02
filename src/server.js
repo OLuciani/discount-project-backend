@@ -56,8 +56,13 @@ app.get('/test-cookies', (req, res) => {
   res.send('Check your console for cookies!');
 });
 
-app.get('/set-cookie', (req, res) => {
+/* app.get('/set-cookie', (req, res) => {
   res.cookie('testCookie', 'testValue', { httpOnly: true });
+  res.send('Cookie has been set!');
+}); */
+
+app.get('/set-cookie', (req, res) => {
+  res.cookie('testCookie', 'testValue', { httpOnly: true, secure: false, sameSite: 'Lax' });
   res.send('Cookie has been set!');
 });
 
@@ -105,4 +110,10 @@ const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+// Middleware para manejo de errores
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
