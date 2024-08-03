@@ -274,22 +274,22 @@ const controller = {
         maxAge: 15 * 60 * 1000, // 15 minutos
       }); */
 
-      //Configuación para desarrollo
-      res.cookie('token', token, {
+      //Configuación que utilizo para desarrollo
+      /* res.cookie('token', token, {
         httpOnly: true,
         secure: false, // `false` en desarrollo
         sameSite: 'Lax', // `Lax` en desarrollo
         maxAge: 15 * 60 * 1000, // 15 minutos
-      });
+      }); */
 
 
-      //Configuación para producción
-      /* res.cookie('token', token, {
+      //Configuación que utilizo para producción
+      res.cookie('token', token, {
         httpOnly: true,
         secure: true, // `true` en producción
         sameSite: 'None', // `None` en producción
         maxAge: 15 * 60 * 1000, // 15 minutos
-      }); */
+      });
       
       
   
