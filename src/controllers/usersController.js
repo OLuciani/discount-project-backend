@@ -275,13 +275,13 @@ const controller = {
       }); */
 
       //Configuación que utilizo para desarrollo
-      /* res.cookie('token', token, {
+     /*  res.cookie('token', token, {
         httpOnly: true,
         secure: false, // `false` en desarrollo
         sameSite: 'Lax', // `Lax` en desarrollo
         maxAge: 15 * 60 * 1000, // 15 minutos
-      }); */
-
+      });
+ */
 
       //Configuación que utilizo para producción
       res.cookie('token', token, {
@@ -309,6 +309,31 @@ const controller = {
       res.status(500).json({ code: "AUTHENTICATION_ERROR", message: "Error en la autenticación" });
     }
   },
+  protected_route: async (req, res) => {
+    try {
+        /* if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Token inválido' });
+        } */
+        console.log("Hola token")
+        const user_id = req.params._id;
+        const user = await User.findById(user_id);
+        console.log("Valor de user en protected_route: ", user);
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        res.json({
+            success: true,
+            userId: user._id,
+            username: user.username,
+            email: user.email
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    }
+},
   checkEmail: async (req, res) => {
     const email = req.params.email.toLowerCase();
 
