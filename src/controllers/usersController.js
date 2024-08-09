@@ -347,7 +347,7 @@ const controller = {
         );
       }
 
-      const token = jwt.sign({ email }, "mi_secreto_secreto", {
+      const token = jwt.sign({ email }, 'secreto_para_reset', {
         expiresIn: "15m",
       });
 
