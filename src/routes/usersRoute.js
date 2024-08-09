@@ -3,6 +3,7 @@ const router = express.Router();
 import jwt from "jsonwebtoken";
 import validationsLogin from "../middlewares/validationsLogin.js";
 import authenticateToken from "../middlewares/authenticateToken.js";
+import authenticateResetToken from "../middlewares/authenticateResetToken.js";
 
 import usersController from "../controllers/usersController.js";
 
@@ -17,7 +18,7 @@ router.post("/login", validationsLogin, usersController.login);
 router.get("/protected_route/:_id", authenticateToken, usersController.protected_route);
 router.get("/checkEmail/:email", usersController.checkEmail); //No debe llevar authenticateToken
 router.get("/checkEmailFromMobile/:email", usersController.checkEmailFromMobile); //No debe llevar authenticateToken
-router.patch('/resetPassword', authenticateToken, usersController.resetPassword);
+router.patch('/resetPassword', authenticateResetToken, usersController.resetPassword);
 //router.post("/sendResetFirebaseEmail", usersController.sendResetFirebaseEmail);//Ruta para enviar el mail con el token de firebase al usuario.
 
 export default router;
