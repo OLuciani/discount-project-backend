@@ -1,5 +1,6 @@
 const authenticateResetToken = (req, res, next) => {
     const token = req.headers['authorization']; // Asumiendo que el token se envía en el encabezado Authorization
+    console.log("Token recibido:", token);
   
     if (!token) {
       return res.status(401).json({ message: "Access denied, no token provided" });
