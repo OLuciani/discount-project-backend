@@ -43,7 +43,7 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, 'mi_secreto_secreto');
+    const decoded = jwt.verify(token, process.env.AUTH_SECRET);
     req.user = decoded;
     next();
   } catch (err) {

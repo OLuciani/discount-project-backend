@@ -1,3 +1,5 @@
+import jwt from 'jsonwebtoken';
+
 const authenticateResetToken = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
  // Asumiendo que el token se envía en el encabezado Authorization
@@ -8,10 +10,11 @@ const authenticateResetToken = (req, res, next) => {
     }
   
     try {
-      const decoded = jwt.verify(token, 'secreto_para_reset'); // Usar un secret específico para este token
+      const decoded = jwt.verify(token, process.env.RESET_TOKEN_SECRET); // Usar un secret específico para este token
       req.user = decoded;
       next();
     } catch (err) {
+        console.log("Error verificando token:", err); 
       res.status(400).json({ message: "Invalid or expired reset token" });
     }
   };

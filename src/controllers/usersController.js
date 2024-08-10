@@ -260,7 +260,7 @@ const controller = {
   
       const token = jwt.sign(
         { userId: user._id, email: user.email, role: user.role },
-        "mi_secreto_secreto",
+        process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
   
@@ -347,7 +347,7 @@ const controller = {
         );
       }
 
-      const token = jwt.sign({ email: user.email }, 'secreto_para_reset', {
+      const token = jwt.sign({ email: user.email }, process.env.RESET_TOKEN_SECRET, {
         expiresIn: "15m",
       });
 
