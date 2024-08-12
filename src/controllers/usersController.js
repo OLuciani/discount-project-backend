@@ -258,8 +258,16 @@ const controller = {
         return res.status(401).json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
       }
   
-      const token = jwt.sign(
+      //este token funciona perfecto
+      /* const token = jwt.sign(
         { userId: user._id, email: user.email, role: user.role },
+        process.env.AUTH_SECRET,
+        { expiresIn: "15m" }
+      ); */
+
+      //este token lo estoy probando en lugar del anterior
+      const token = jwt.sign(
+        { userId: user._id,  role: user.role },
         process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
@@ -289,24 +297,37 @@ const controller = {
         secure: true, // `true` en producción
         sameSite: 'None', // `None` en producción
         maxAge: 15 * 60 * 1000, // 15 minutos
+        path: '/',  //Esta linea la agruegué 
       });
       
       
   
       res.json({
         message: "Inicio de sesión exitoso",
-        token,
-        _id: user._id,
-        role: user.role,
-        name: user.name,
-        businessName: user.businessName,
-        businessId: user.businessId,
-        businessType: user.businessType,
-        originalEmail: user.originalEmail, // Devolver el email original si es necesario
+        success: true,
+        //name: user.name,
+        //businessName: user.businessName,
+        //businessId: user.businessId,
+        //businessType: user.businessType,
+        //originalEmail: user.originalEmail, // Devolver el email original si es necesario
       });
     } catch (error) {
       console.error("Error al buscar el usuario:", error);
       res.status(500).json({ code: "AUTHENTICATION_ERROR", message: "Error en la autenticación" });
+    }
+  },
+  user_profile: async (req, res) => {
+    const { userId } = req.user; // Extrae el userId del objeto req.user
+
+    try {
+      const user = await User.findById(userId).select('-password'); // Busca el usuario en la base de datos excluyendo la contraseña
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+  
+      res.json({ user }); // Devuelve los datos del usuario
+    } catch (err) {
+      res.status(500).json({ message: "Error al obtener los datos del usuario" });
     }
   },
   protected_route: async (req, res) => {
