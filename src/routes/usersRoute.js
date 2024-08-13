@@ -16,7 +16,10 @@ router.patch("/businessId_and_businessType_update/:_id", usersController.busines
 router.patch("/user_update/:_id", authenticateToken, usersController.user_update);
 router.post("/login", validationsLogin, usersController.login);
 router.get("/user_profile", authenticateToken, usersController.user_profile);
-router.get("/protected_route/:_id", authenticateToken, usersController.protected_route);
+
+//router.get("/protected_route/:_id", authenticateToken, usersController.protected_route);
+router.get("/protected_route", authenticateToken, usersController.protected_route);
+
 router.get("/checkEmail/:email", usersController.checkEmail); //No debe llevar authenticateToken
 router.get("/checkEmailFromMobile/:email", usersController.checkEmailFromMobile); //No debe llevar authenticateToken
 router.patch('/resetPassword', authenticateResetToken, usersController.resetPassword);

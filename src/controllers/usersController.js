@@ -335,9 +335,10 @@ const controller = {
         /* if (!req.user) {
             return res.status(401).json({ success: false, message: 'Token inválido' });
         } */
-        console.log("Hola token")
-        const user_id = req.params._id;
-        const user = await User.findById(user_id);
+        //const user_id = req.params._id;
+        const { userId } = req.user; // Extrae el userId del objeto req.user
+        //const user = await User.findById(user_id);
+        const user = await User.findById(userId);
         console.log("Valor de user en protected_route: ", user);
 
         if (!user) {
