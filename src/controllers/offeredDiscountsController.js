@@ -138,7 +138,8 @@ const controller = {
       });
   },
   discounts_list_one_business: (req, res) => {
-    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    const { businessId } = req.user; // Extrae el userId del objeto req.user
     OfferedDiscount.find({ businessId: businessId, isActive: true, isDeleted: false }) // Busco descuentos por el ID del negocio, que estén activos y no eliminados lógicamente
       .then((allDiscounts) => {
         if (!allDiscounts || allDiscounts.length === 0) {

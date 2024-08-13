@@ -308,7 +308,9 @@ const controller = {
     });
   },
   business_detail: (req, res) => {
-    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    const { businessId } = req.user; // Extrae el userId del objeto req.user
+    
     Business.findById(businessId) // Busco el negocio por su ID
       .then((oneBusiness) => {
         if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra

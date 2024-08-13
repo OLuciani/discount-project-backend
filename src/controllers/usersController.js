@@ -267,7 +267,7 @@ const controller = {
 
       //este token lo estoy probando en lugar del anterior
       const token = jwt.sign(
-        { userId: user._id,  role: user.role },
+        { userId: user._id,  businessId: user.businessId, role: user.role },
         process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
@@ -320,7 +320,7 @@ const controller = {
     const { userId } = req.user; // Extrae el userId del objeto req.user
 
     try {
-      const user = await User.findById(userId).select('-password'); // Busca el usuario en la base de datos excluyendo la contraseña
+      const user = await User.findById(userId).select('-password -userId -businessId'); // Busca y trae datos el usuario en la base de datos excluyendo password, userId y businessId.
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
