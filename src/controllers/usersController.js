@@ -347,7 +347,7 @@ const controller = {
 
         res.json({
             success: true,
-            userId: user._id,
+            //userId: user._id,
             username: user.username,
             email: user.email
         });
