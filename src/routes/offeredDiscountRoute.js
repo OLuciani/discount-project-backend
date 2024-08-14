@@ -43,8 +43,9 @@ import offeredDiscountsController from "../controllers/offeredDiscountsControlle
 import { upload, processImage } from "../middlewares/multerSharpMiddleware.js";
 import { authorizeRole } from "../middlewares/authorizeRole.js";
 
-
 const router = express.Router();
+
+const roleAdminWeb = process.env.ROLE_ADMINWEB;
 
 /* const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -67,7 +68,7 @@ router.post("/discount_create", authenticateToken, upload.single("imageURL"), pr
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
 
 //router.get("/discounts_list_one_business/:_id", authenticateToken, offeredDiscountsController.discounts_list_one_business);
-router.get("/discounts_list_one_business", authenticateToken, authorizeRole(['adminweb']),  offeredDiscountsController.discounts_list_one_business);
+router.get("/discounts_list_one_business", authenticateToken, authorizeRole([roleAdminWeb]),  offeredDiscountsController.discounts_list_one_business);
 
 router.get("/discount_detail/:_id", authenticateToken, offeredDiscountsController.discount_detail);
 
