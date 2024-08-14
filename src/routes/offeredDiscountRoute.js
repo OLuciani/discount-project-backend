@@ -41,6 +41,7 @@ import express from "express";
 import authenticateToken from "../middlewares/authenticateToken.js";
 import offeredDiscountsController from "../controllers/offeredDiscountsController.js";
 import { upload, processImage } from "../middlewares/multerSharpMiddleware.js";
+import { authorizeRole } from "../middlewares/authorizeRole.js";
 
 
 const router = express.Router();
