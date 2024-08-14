@@ -316,7 +316,8 @@ const controller = {
       res.status(500).json({ code: "AUTHENTICATION_ERROR", message: "Error en la autenticación" });
     }
   },
-  user_profile: async (req, res) => {
+  //Este user_profile anda perfecto
+  /* user_profile: async (req, res) => {
     const { userId } = req.user; // Extrae el userId del objeto req.user
 
     try {
@@ -329,7 +330,83 @@ const controller = {
     } catch (err) {
       res.status(500).json({ message: "Error al obtener los datos del usuario" });
     }
-  },
+  }, */
+  /* user_profile: async (req, res) => {
+    const { userId } = req.user; // Extrae el userId del objeto req.user
+
+    try {
+      const user = await User.findById(userId).select('-password -userId -businessId'); // Busca y trae datos el usuario en la base de datos excluyendo password, userId y businessId.
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      const roleAdminWeb = process.env.ROLE_ADMINWEB;
+      const roleUser = process.env.ROLE_USER;
+      const roleAdminQr = process.env.ROLE_ADMINQR;
+
+      const roleType = "";
+      
+      if(user.role === roleAdminWeb) {
+        roleType = "adminWeb";
+      } else if (user.role === roleUser) {
+        roleType = "user";
+      } else if (user.role === roleAdminQr) {
+        roleType = "adminQr";
+      }
+  
+      res.json({ userRole: roleType, userName: user.name, businessName: user.businessName, businessType: user.businessType }); // Devuelve los datos del usuario
+    } catch (err) {
+      res.status(500).json({ message: "Error al obtener los datos del usuario" });
+    }
+  }, */
+  user_profile: async (req, res) => {
+    const { userId } = req.user; // Extrae el userId del objeto req.user
+
+    try {
+        // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
+        const user = await User.findById(userId).select('-password -userId -businessId'); 
+        if (!user) {
+            return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+
+        // Validar que el usuario tenga un rol asignado
+        if (!user.role) {
+            return res.status(400).json({ message: "El usuario no tiene un rol asignado" });
+        }
+
+        // Cargar las variables de entorno para los roles
+        const roleAdminWeb = process.env.ROLE_ADMINWEB;
+        const roleUser = process.env.ROLE_USER;
+        const roleAdminQr = process.env.ROLE_ADMINQR;
+
+        // Definir la variable roleType
+        let roleType = ""; 
+
+        // Condicional para determinar el tipo de rol
+        if (user.role === roleAdminWeb) {
+            roleType = "adminWeb";
+        } else if (user.role === roleUser) {
+            roleType = "user";
+        } else if (user.role === roleAdminQr) {
+            roleType = "adminQr";
+        } else {
+            // En caso de que el rol no coincida con ninguno de los roles conocidos
+            roleType = "unknown";
+        }
+
+        // Devuelve los datos del usuario
+        res.json({
+            userRole: roleType,
+            userName: user.name,
+            businessName: user.businessName,
+            businessType: user.businessType
+        });
+    } catch (err) {
+        // Registro del error en la consola para depuración
+        console.error("Error al obtener los datos del usuario:", err);
+        res.status(500).json({ message: "Error al obtener los datos del usuario" });
+    }
+},
   protected_route: async (req, res) => {
     try {
         /* if (!req.user) {

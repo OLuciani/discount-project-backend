@@ -91,6 +91,7 @@ import usersRoute from "./routes/usersRoute.js";
 import offeredDiscountsRoute from "./routes/offeredDiscountRoute.js";
 import userDiscountQrsRoute from "./routes/userDiscountQrsRoute.js";
 import businessRoute from "./routes/businessRoute.js";
+import checkAccountRoute from "./routes/checkAccountRoute.js";
 //import dashboardRoute from "./routes/dashboardRoute.js";
 
 
@@ -102,11 +103,12 @@ app.use(BASE_API_PATH, usersRoute);
 app.use(BASE_API_PATH, offeredDiscountsRoute);
 app.use(BASE_API_PATH, userDiscountQrsRoute);
 app.use(BASE_API_PATH, businessRoute);
+app.use(BASE_API_PATH, checkAccountRoute);
 //app.use(BASE_API_PATH, dashboardRoute);
 
 
-const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
-//const PORT = 5050;
+//const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
+const PORT = 5050;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
