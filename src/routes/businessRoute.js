@@ -32,6 +32,6 @@ router.get("/business_detail", authenticateToken, businessController.business_de
 
 router.get("/business_list", businessController.business_list);
 
-router.patch("/update_business/:_id", authenticateToken, upload.single("imageURL"), processImage, businessController.update_business);
+router.patch("/update_business", authenticateToken, upload.single("imageURL"), processImage, businessController.update_business);
 
 export default router;

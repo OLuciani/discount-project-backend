@@ -114,8 +114,7 @@ export default controller; */
 import mongoose from "mongoose";
 import dotenv from 'dotenv';
 import Business from "../models/Business.model.js";
-//import fetch from 'node-fetch';
-
+import User from "../models/User.model.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -309,8 +308,8 @@ const controller = {
   },
   business_detail: (req, res) => {
     //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
-    const { businessId } = req.user; // Extrae el userId del objeto req.user
-    
+    const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
+
     Business.findById(businessId) // Busco el negocio por su ID
       .then((oneBusiness) => {
         if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
@@ -324,7 +323,7 @@ const controller = {
       });
   }, 
   update_business: async (req, res) => {
-    const businessId = req.params._id;
+    const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
     const { businessName, address, city, country, businessType} = req.body;
 
     let imageURL = "";

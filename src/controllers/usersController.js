@@ -64,6 +64,7 @@ const sendMobileMongoEmail = async (email, token) => {
   }
 };
 
+//Por el momento no estoy utilizando sendMobileMongoEmail ya que no estoy utilizando la ruta y contoller checkEmailFromMobile.
 /* const sendMobileMongoEmail = async (email, token) => {
   try {
     // Usa http o https en lugar de exp:// para el enlace
@@ -92,8 +93,9 @@ const sendMobileMongoEmail = async (email, token) => {
 
 const controller = {
   user_detail: (req, res) => {
-    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
-    User.findById(businessId) // Busco el usuario por su ID
+    /* const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud */
+    const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
+    User.findById(userId) // Busco el usuario por su ID
       .then((oneUser) => {
         if (!oneUser) {
           // Manejo el caso si el usuario no se encuentra
@@ -200,7 +202,7 @@ const controller = {
     }
   },
   user_update: async (req, res) => {
-    const userId = req.params._id;
+    const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
     const { name, lastName, phone, businessType, businessName } = req.body;
 
     try {
@@ -465,7 +467,8 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  checkEmailFromMobile: async (req, res) => {
+  //Por el momento no la estoy utilizando
+  /* checkEmailFromMobile: async (req, res) => {
     const email = req.params.email.toLowerCase();
 
     try {
@@ -496,7 +499,7 @@ const controller = {
       console.error("Error al enviar el correo electrónico de MongoDB:", error);
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
-  },
+  }, */
   resetPassword: async (req, res) => {
     const { email, newPassword } = req.body;
     const normalizedEmail = email.toLowerCase();

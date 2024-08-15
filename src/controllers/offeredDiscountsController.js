@@ -50,7 +50,7 @@ const controller = {
     try {
       const {
         businessName,
-        businessId,
+        //businessId,
         businessType,
         title,
         description,
@@ -96,12 +96,14 @@ const controller = {
       const startDateTime = now;
       const durationDays = validityPeriod ? Number(validityPeriod) : null;
       const expirationDate = durationDays
-        ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
-        : null;
+      ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
+      : null;
+
+      const { businessId } = req.user; // Extrae el userId del objeto req.user
   
       const newOfferedDiscount = new OfferedDiscount({
         businessName,
-        businessId,
+        businessId: businessId,
         businessType,
         title,
         description,
@@ -178,11 +180,12 @@ const controller = {
       });
   },
   discount_update: async (req, res) => {
+    const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
     try {
       const { _id } = req.params;
       const {
         businessName,
-        businessId,
+        //businessId,
         businessType,
         title,
         description,
@@ -242,7 +245,7 @@ const controller = {
         _id,
         {
           businessName,
-          businessId,
+          businessId: businessId,
           businessType,
           title,
           description,
