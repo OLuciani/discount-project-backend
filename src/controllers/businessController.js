@@ -308,7 +308,7 @@ const controller = {
   },
   business_detail: (req, res) => {
     //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
-    const mobileBusinessId = req.params;
+    const mobileBusinessId = req.params._id;
     const { webBusinessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
 
     Business.findById(mobileBusinessId ? mobileBusinessId : webBusinessId) // Busco el negocio por su ID
