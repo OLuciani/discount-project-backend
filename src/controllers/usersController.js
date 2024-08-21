@@ -308,8 +308,8 @@ const controller = {
         message: "Inicio de sesión exitoso",
         success: true,
         token, //Lo agregué para probar la aplicacion movil
-        role: user.role, //Lo agregué para probar la aplicacion movil
-        _id: user._id //Lo agregué para probar la aplicacion movil
+        //role: user.role, 
+        //_id: user._id, 
         //name: user.name,
        // businessName: user.businessName,
         //businessId: user.businessId,
