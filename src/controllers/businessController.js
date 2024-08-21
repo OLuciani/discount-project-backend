@@ -311,7 +311,15 @@ const controller = {
     const mobileBusinessId = req.params._id;
     const { webBusinessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
 
-    Business.findById(mobileBusinessId ? mobileBusinessId : webBusinessId) // Busco el negocio por su ID
+    const businessId = "";
+
+    if(mobileBusinessId) {
+      businessId = mobileBusinessId
+    } else {
+      businessId = webBusinessId
+    }
+
+    Business.findById(businessId) // Busco el negocio por su ID
       .then((oneBusiness) => {
         if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
           return res.status(404).json({ message: "Negocio no encontrado" });
