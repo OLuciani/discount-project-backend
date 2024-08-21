@@ -307,8 +307,11 @@ const controller = {
       res.json({
         message: "Inicio de sesión exitoso",
         success: true,
+        token, //Lo agregué para probar la aplicacion movil
+        role: user.role, //Lo agregué para probar la aplicacion movil
+        _id: user._id //Lo agregué para probar la aplicacion movil
         //name: user.name,
-        //businessName: user.businessName,
+       // businessName: user.businessName,
         //businessId: user.businessId,
         //businessType: user.businessType,
         //originalEmail: user.originalEmail, // Devolver el email original si es necesario

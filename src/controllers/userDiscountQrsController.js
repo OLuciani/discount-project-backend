@@ -33,7 +33,7 @@ const controller = {
     });
 },
   discountQr_create: (req, res) => {
-    const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt, isValid, expirationDate} = req.body;
+    const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt,   expirationDate} = req.body;
 
     const newDiscountQr = new UserDiscountQr({
       businessId: businessId,
@@ -42,7 +42,9 @@ const controller = {
       offeredDiscountId: offeredDiscountId,
       discountDetails: discountDetails,
       createdAt: createdAt,
-      isValid: isValid,
+      //isValid: isValid,
+      //isValid,
+      //isUsed,
       expirationDate: expirationDate
     });
 
@@ -85,11 +87,12 @@ const controller = {
     console.log("ID del descuento recibido:", discountId);
 
     //Extraigo los datos que quiero actualizar desde la solicitud patch
-    const { isValid } = req.body;
+    const { isValid , isUsed } = req.body;
 
     //Creo un objeto con los datos a actualizar en el descuento en Base de Datos.
     const updatedDiscount = {
-      isValid
+      isValid,
+      isUsed
     };
 
     UserDiscountQr.findByIdAndUpdate(discountId, updatedDiscount, {new: true})
