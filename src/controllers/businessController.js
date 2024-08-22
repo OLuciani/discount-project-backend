@@ -313,7 +313,7 @@ const controller = {
     const { webBusinessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
     console.log("Valor de webBusinessId: ", webBusinessId);
 
-    const businessId = "";
+    let businessId = "";
 
     if(mobileBusinessId) {
       businessId = mobileBusinessId
