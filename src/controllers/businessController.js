@@ -334,6 +334,21 @@ const controller = {
         res.status(500).json({ error: "Error al buscar el negocio" });
       });
   }, 
+  light_business_details: (req, res) => {
+    const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
+    
+    Business.findById(businessId).select('-ownerId -ownerName -_id') // Busco el negocio por su ID y evito mostrar datos sensibles.
+      .then((oneBusiness) => {
+        if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
+          return res.status(404).json({ message: "Negocio no encontrado" });
+        }
+        res.json(oneBusiness); // Envío los datos del negocio encontrado como respuesta
+      })
+      .catch((error) => {
+        console.error("Error al buscar el negocio: ", error);
+        res.status(500).json({ error: "Error al buscar el negocio" });
+      });
+  }, 
   update_business: async (req, res) => {
     const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
     const { businessName, address, city, country, businessType} = req.body;
