@@ -365,7 +365,19 @@ const controller = {
     }
   }, */
   user_profile: async (req, res) => {
-    const { userId } = req.user; // Extrae el userId del objeto req.user
+    //const { userId } = req.user; // Extrae el userId del objeto req.user
+    const mobileUserId = req.params._id;
+    console.log("Valor de mobileBusinessId: ", mobileUserId);
+    const { webUserId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
+    console.log("Valor de webBusinessId: ", webUserId);
+
+    let userId = "";
+
+    if(mobileUserId) {
+      userId = mobileUserId
+    } else {
+      userId = webUserId
+    }
 
     try {
         // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
