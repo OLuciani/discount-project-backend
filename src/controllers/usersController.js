@@ -148,6 +148,9 @@ const controller = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      const roleUser = process.env.ROLE_USER;
+
+
       const newUser = new User({
         name,
         lastName,
@@ -158,7 +161,7 @@ const controller = {
         email: normalizedEmail,
         originalEmail: email,
         password: hashedPassword,
-        role: "user",
+        role: roleUser,
       });
 
       await newUser.save();
@@ -367,9 +370,9 @@ const controller = {
   user_profile: async (req, res) => {
     //const { userId } = req.user; // Extrae el userId del objeto req.user
     const mobileUserId = req.params._id;
-    console.log("Valor de mobileBusinessId: ", mobileUserId);
+    console.log("Valor de mobileUserId: ", mobileUserId);
     const { webUserId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
-    console.log("Valor de webBusinessId: ", webUserId);
+    console.log("Valor de webUserId: ", webUserId);
 
     let userId = "";
 
