@@ -81,7 +81,7 @@ const controller = {
       });
 },
 
-  discount_update: (req, res) => {
+userDiscountQrs_update: (req, res) => {
     //Recupero el id para buscar el descuenteo que quiero actualizar en Base de Datos.
     const discountId = req.params._id;
     console.log("ID del descuento recibido:", discountId);
