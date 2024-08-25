@@ -15,7 +15,7 @@ router.get("/users_list", usersController.users_list);
 router.patch("/businessId_and_businessType_update/:_id", usersController.businessId_and_businessType_update);
 router.patch("/user_update", authenticateToken, usersController.user_update);
 router.post("/login", validationsLogin, usersController.login);
-router.get("/user_profile/:_id", authenticateToken, usersController.user_profile);
+router.get("/user_profile/:_id?", authenticateToken, usersController.user_profile);
 
 //router.get("/protected_route/:_id", authenticateToken, usersController.protected_route);
 router.get("/protected_route", authenticateToken, usersController.protected_route);
