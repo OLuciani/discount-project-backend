@@ -33,14 +33,15 @@ const controller = {
     });
 },
   discountQr_create: (req, res) => {
-    const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt,   expirationDate} = req.body;
+    const {businessId, businessName, userId, offeredDiscountId, discountDetails, createdAt,   expirationDate, discountTitle} = req.body;
 
     const newDiscountQr = new UserDiscountQr({
+      discountTitle: discountTitle,
+      discountDetails: discountDetails,
       businessId: businessId,
       businessName: businessName,
       userId: userId,
       offeredDiscountId: offeredDiscountId,
-      discountDetails: discountDetails,
       createdAt: createdAt,
       //isValid: isValid,
       //isValid,

@@ -5,6 +5,7 @@ const userDiscountQrSchema = mongoose.Schema({
     businessName: String,
     userId: String,
     offeredDiscountId: String,
+    discountTitle: String,
     discountDetails: String,
     createdAt: { type: Date, default: Date.now },
     isValid: { type: Boolean, default: true }, 

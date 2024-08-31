@@ -263,6 +263,8 @@ const controller = {
       if (!updatedDiscount) {
         return res.status(404).json({ message: "Descuento no encontrado" });
       }
+
+      console.log("Descuento modificado y guardada la nueva imagen");
   
       res.status(200).json({
         message: "Descuento actualizado correctamente",
