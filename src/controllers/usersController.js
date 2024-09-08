@@ -351,22 +351,22 @@ const controller = {
       }); */
 
       //Configuación que utilizo para desarrollo
-      res.cookie('token', token, {
+      /* res.cookie('token', token, {
         httpOnly: true,
         secure: false, // `false` en desarrollo
         sameSite: 'Strict', // `Lax` en desarrollo
         maxAge: 15 * 60 * 1000, // 15 minutos
-      });
+      }); */
 
 
       //Configuación que utilizo para producción
-      /* res.cookie('token', token, {
+      res.cookie('token', token, {
         httpOnly: true,
         secure: true, // `true` en producción
         sameSite: 'None', // `None` en producción
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/',  //Esta linea la agruegué 
-      }); */
+      });
       
       
   
