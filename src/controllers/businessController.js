@@ -310,8 +310,9 @@ const controller = {
     //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
     const mobileBusinessId = req.params._id;
     console.log("Valor de mobileBusinessId: ", mobileBusinessId);
-    const { webBusinessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
+    const webBusinessId = req.user.businessId; // Extrae businessId del objeto req.user (del token de la cookie).
     console.log("Valor de webBusinessId: ", webBusinessId);
+    console.log("Valor de req.user: ", req.user);
 
     let businessId = "";
 

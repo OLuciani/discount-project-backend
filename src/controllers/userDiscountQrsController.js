@@ -17,8 +17,8 @@ const controller = {
     UserDiscountQr.find()
     .then((allDiscountQrs) => res.json(allDiscountQrs))
     .catch((error) => {
-      console.error("Error al buscar usuarios: ", error);
-      res.status(500).json({ error: "Error al buscar usuarios"});
+      console.error("Error al buscar descuentos creados por usuarios: ", error);
+      res.status(500).json({ error: "Error al buscar descuentos creados por usuarios"});
     });
   }, 
   userDiscountQrs_OneUser: (req, res) => {
@@ -110,8 +110,16 @@ userDiscountQrs_update: (req, res) => {
       console.error("Error al actualizar la propiedad isValid del descuento escaneado:", error);
       res.status(500).json({ error: "Error al actualizar la propiedad isValid del descuento escaneado." });
     });
+  },
+  consumed_discounts: (req, res) => {
+    const { businessId } = req.user;
 
-
+    UserDiscountQr.find({ businessId: businessId })
+    .then((consumedDiscounts) => res.json(consumedDiscounts))
+    .catch((error) => {
+      console.error("Error al buscar descuentos utilizados: ", error);
+      res.status(500).json({ error: "Error al buscar descuentos utilizados"});
+    });
   }
 };
 

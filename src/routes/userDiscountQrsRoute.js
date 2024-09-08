@@ -15,5 +15,6 @@ router.get("/userDiscountQrs_OneUser/:_id", userDiscountQrsController.userDiscou
 router.post("/discountQr_create", authenticateToken, userDiscountQrsController.discountQr_create);
 router.get("/userDiscountQrs_oneDiscount/:_id", authenticateToken, userDiscountQrsController.userDiscountQrs_oneDiscount);
 router.patch("/userDiscountQrs_update/:_id", authenticateToken, authorizeRole([roleAdminQr]), userDiscountQrsController.userDiscountQrs_update);
+router.get("/consumed_discounts", authenticateToken, userDiscountQrsController.consumed_discounts);
 
 export default router;

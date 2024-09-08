@@ -15,6 +15,31 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+const sendConfirmEmail = async (email, token) => {
+  try {
+    const resetLink = `http://localhost:8081/register?token=${token}&email=${email}`;
+    //const resetLink = `${process.env.FRONTEND_WEB_URL}/register?token=${token}&email=${email}`;
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: email,
+      subject: "Solicitud de confirmación de correo electrónico",
+      html: `
+        <h5>Se ha solicitado la confirmación de correo electrónico para crear cuenta en la aplicación.</h5>
+        <p>Haz clic en el siguiente enlace para crear tu cuenta en la aplicación:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Correo electrónico para confirmación de Email enviado con éxito");
+  } catch (error) {
+    console.error("Error al enviar el correo electrónico de Confirmación de Email:", error);
+    throw error;
+  }
+};
+
 // Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
 const sendMongoEmail = async (email, token) => {
   try {
@@ -117,7 +142,45 @@ const controller = {
       res.status(500).json({ error: "Error al buscar usuarios" });
     }
   },
+  confirm_email: async (req, res) => {
+    //req.params.email.toLowerCase();
+    const {email} = req.body;
 
+    try {
+      const normalizedEmail = email.toLowerCase();;
+
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        console.log(
+          "El correo electrónico ya está registrado:",
+          normalizedEmail
+        );
+        return res
+          .status(400)
+          .json({ error: "El correo electrónico ya está registrado" });
+      } else {
+
+        const confirmEmailToken = jwt.sign({ email: email }, process.env.CONFIRM_EMAIL_SECRET, {
+          expiresIn: "15m",
+        });
+  
+        await sendConfirmEmail(email, confirmEmailToken);
+        console.log("Correo electrónico para confirmación de email para iniciar cuenta enviado a:", email);
+  
+        res.json({
+          //exists: !!user,
+          success: true,
+          message:
+            "Correo electrónico con enlace para crear cuenta enviado correctamente",
+          token: confirmEmailToken,
+        });
+      }
+
+    } catch (error) {
+      console.error("Error al procesar la solicitud de chequeo de email para crear cuenta:", error);
+      res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+  },
   user_register: async (req, res) => {
     const {
       name,
@@ -288,22 +351,22 @@ const controller = {
       }); */
 
       //Configuación que utilizo para desarrollo
-     /*  res.cookie('token', token, {
+      res.cookie('token', token, {
         httpOnly: true,
         secure: false, // `false` en desarrollo
-        sameSite: 'Lax', // `Lax` en desarrollo
+        sameSite: 'Strict', // `Lax` en desarrollo
         maxAge: 15 * 60 * 1000, // 15 minutos
       });
- */
+
 
       //Configuación que utilizo para producción
-      res.cookie('token', token, {
+      /* res.cookie('token', token, {
         httpOnly: true,
         secure: true, // `true` en producción
         sameSite: 'None', // `None` en producción
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/',  //Esta linea la agruegué 
-      });
+      }); */
       
       
   

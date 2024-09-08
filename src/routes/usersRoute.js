@@ -4,11 +4,14 @@ import jwt from "jsonwebtoken";
 import validationsLogin from "../middlewares/validationsLogin.js";
 import authenticateToken from "../middlewares/authenticateToken.js";
 import authenticateResetToken from "../middlewares/authenticateResetToken.js";
+import authenticateConfirmEmailToken from "../middlewares/authenticateConfirmEmailToken.js";
+
 
 import usersController from "../controllers/usersController.js";
 
 
-router.post("/user_register", usersController.user_register);
+router.post("/confirm_email", usersController.confirm_email);
+router.post("/user_register", authenticateConfirmEmailToken, usersController.user_register);
 router.get("/user_detail", authenticateToken, usersController.user_detail);
 router.get("/users_list", usersController.users_list);
 //router.patch("/user_update/:_id", usersController.user_update);
