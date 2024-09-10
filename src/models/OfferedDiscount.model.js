@@ -33,6 +33,14 @@ const offeredDiscountSchema = mongoose.Schema({
       return null;
     },
   },
+  generatedDiscounts: {
+    type: Number,
+    default: 0, // Inicializa con 0 descuentos generados
+  },
+  usedDiscounts: {
+    type: Number,
+    default: 0, // Inicializa con 0 descuentos consumidos
+  }
 });
 
 const OfferedDiscount = mongoose.model(

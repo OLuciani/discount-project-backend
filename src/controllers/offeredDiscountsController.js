@@ -275,6 +275,60 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el descuento" });
     }
   },
+  discount_update_generatedDiscounts: async (req, res) => {
+    try {
+      const { _id } = req.params; // Obtener el ID del descuento de los parámetros de la ruta
+  
+      // Verificar si el descuento existe
+      const existingDiscount = await OfferedDiscount.findById(_id);
+      if (!existingDiscount) {
+        return res.status(404).json({ message: "Descuento no encontrado" });
+      }
+  
+      // Incrementar en 1 el valor de generatedDiscounts
+      const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
+        _id,
+        { $inc: { generatedDiscounts: 1 } }, // Incrementar el campo generatedDiscounts
+        { new: true }
+      );
+  
+      // Enviar respuesta con el descuento actualizado
+      res.status(200).json({
+        message: "Generated discounts actualizado correctamente",
+        discount: updatedDiscount,
+      });
+    } catch (error) {
+      console.error("Error al actualizar generatedDiscounts:", error.message);
+      res.status(500).json({ error: "Error al actualizar generatedDiscounts" });
+    }
+  },
+  discount_update_usedDiscounts: async (req, res) => {
+    try {
+      const { _id } = req.params; // Obtener el ID del descuento de los parámetros de la ruta
+  
+      // Verificar si el descuento existe
+      const existingDiscount = await OfferedDiscount.findById(_id);
+      if (!existingDiscount) {
+        return res.status(404).json({ message: "Descuento no encontrado" });
+      }
+  
+      // Incrementar en 1 el valor de usedDiscounts
+      const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
+        _id,
+        { $inc: { usedDiscounts: 1 } }, // Incrementar el campo usedDiscounts
+        { new: true }
+      );
+  
+      // Enviar respuesta con el descuento actualizado
+      res.status(200).json({
+        message: "Used discounts actualizado correctamente",
+        discount: updatedDiscount,
+      });
+    } catch (error) {
+      console.error("Error al actualizar usedDiscounts:", error.message);
+      res.status(500).json({ error: "Error al actualizar usedDiscounts" });
+    }
+  },
   discount_delete: async (req, res) => {
     try {
       // Obtengo el ID del descuento desde los parámetros de la solicitud

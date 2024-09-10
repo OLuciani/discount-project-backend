@@ -18,7 +18,12 @@ router.get("/discounts_list_one_business", authenticateToken, authorizeRole([rol
 
 router.get("/discount_detail/:_id", authenticateToken, offeredDiscountsController.discount_detail);
 
-router.patch("/discount_update/:_id", authenticateToken, upload.single("imageURL"), processImage, offeredDiscountsController.discount_update);
+router.patch("/discount_update/:_id", authenticateToken, authorizeRole([roleAdminWeb]), upload.single("imageURL"), processImage, offeredDiscountsController.discount_update);
+
+router.patch("/discount_update_generateDiscounts/:_id", authenticateToken, offeredDiscountsController.discount_update_generatedDiscounts);
+
+router.patch("/discount_update_usedDiscounts/:_id", authenticateToken,
+offeredDiscountsController.discount_update_usedDiscounts);
 
 router.delete("/discount_delete/:_id", authenticateToken, offeredDiscountsController.discount_delete);
 
