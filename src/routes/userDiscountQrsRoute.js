@@ -11,7 +11,8 @@ const roleAdminQr = process.env.ROLE_ADMINQR;
 
 
 router.get("/userDiscountQrs_list", userDiscountQrsController.userDiscountQrs_list);
-router.get("/userDiscountQrs_OneUser/:_id", userDiscountQrsController.userDiscountQrs_OneUser);
+//router.get("/userDiscountQrs_OneUser/:_id", userDiscountQrsController.userDiscountQrs_OneUser);
+router.get("/userDiscountQrs_OneUser", authenticateToken, userDiscountQrsController.userDiscountQrs_OneUser);
 router.post("/discountQr_create", authenticateToken, userDiscountQrsController.discountQr_create);
 router.get("/userDiscountQrs_oneDiscount/:_id", authenticateToken, userDiscountQrsController.userDiscountQrs_oneDiscount);
 router.patch("/userDiscountQrs_update/:_id", authenticateToken, authorizeRole([roleAdminQr]), userDiscountQrsController.userDiscountQrs_update);
