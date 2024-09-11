@@ -22,7 +22,8 @@ const controller = {
     });
   }, 
   userDiscountQrs_OneUser: (req, res) => {
-    const userId = req.params._id; // Obtener el ID de usuario de los parámetros de la solicitud
+    //const userId = req.params._id; // Obtener el ID de usuario de los parámetros de la solicitud
+    const { userId } = req.user;
     UserDiscountQr.find({ userId: userId }) // Buscar descuentos con el ID de usuario proporcionado
     .then((userDiscountQrs) => {
         res.json(userDiscountQrs); // Enviar los descuentos encontrados como respuesta
