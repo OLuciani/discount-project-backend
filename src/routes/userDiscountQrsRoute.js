@@ -19,3 +19,4 @@ router.patch("/userDiscountQrs_update/:_id", authenticateToken, authorizeRole([r
 router.get("/consumed_discounts", authenticateToken, userDiscountQrsController.consumed_discounts);
 
 export default router;
+
