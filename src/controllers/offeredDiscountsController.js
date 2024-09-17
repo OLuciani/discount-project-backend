@@ -62,6 +62,9 @@ const controller = {
         businessLocationLongitude
       } = req.body;
 
+      console.log('Datos recibidos en discount_create:', req.body);
+
+
       console.log("Valor recibido en req.body para businessLocationLatitude: ", businessLocationLatitude);
 
       console.log("Valor recibido en req.body para businessLocationLongitude: ", businessLocationLongitude);
