@@ -58,6 +58,8 @@ const controller = {
         discountAmount,
         validityPeriod,
         isActive,
+        businessLocationLatitude,
+        businessLocationLongitude
       } = req.body;
   
       let imageURL = "";
@@ -116,6 +118,8 @@ const controller = {
         startDateTime,
         durationDays,
         expirationDate,
+        businessLocationLatitude: businessLocationLatitude,
+        businessLocationLongitude: businessLocationLongitude
       });
   
       const savedDiscount = await newOfferedDiscount.save();
