@@ -40,7 +40,25 @@ const offeredDiscountSchema = mongoose.Schema({
   usedDiscounts: {
     type: Number,
     default: 0, // Inicializa con 0 descuentos consumidos
-  }
+  },
+  businesLocationLatitude: {
+    type: Number,
+    get: v => {
+        return parseFloat(v).toFixed(7); // Convierte el valor a Double
+    },
+    set: v => {
+        return parseFloat(v).toFixed(7); // Convierte el valor a Double
+    }
+},
+businessLocationLongitude: {
+    type: Number,
+    get: v => {
+        return parseFloat(v).toFixed(7); // Convierte el valor a Double
+    },
+    set: v => {
+        return parseFloat(v).toFixed(7); // Convierte el valor a Double
+    }
+},
 });
 
 const OfferedDiscount = mongoose.model(

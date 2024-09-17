@@ -33,24 +33,6 @@ const userDiscountQrSchema = mongoose.Schema({
     isValid: { type: Boolean, default: true }, 
     isUsed: { type: Boolean, default: false }, 
     expirationDate: Date, 
-    businesLatitude: {
-        type: Number,
-        get: v => {
-            return parseFloat(v).toFixed(7); // Convierte el valor a Double
-        },
-        set: v => {
-            return parseFloat(v).toFixed(7); // Convierte el valor a Double
-        }
-    },
-    businessLongitude: {
-        type: Number,
-        get: v => {
-            return parseFloat(v).toFixed(7); // Convierte el valor a Double
-        },
-        set: v => {
-            return parseFloat(v).toFixed(7); // Convierte el valor a Double
-        }
-    },
 });
 
 const UserDiscountQr = mongoose.model("userDiscountQr", userDiscountQrSchema, "user_discount_qrs");
