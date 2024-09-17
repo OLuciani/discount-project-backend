@@ -66,12 +66,12 @@ const controller = {
 
       console.log("Valor recibido en req.body para businessLocationLongitude: ", businessLocationLongitude);
 
+      if (!businessLocationLatitude || !businessLocationLongitude) {
+        return res.status(400).json({ message: 'Faltan longitud o latitud' });
+      }
+      
       if (typeof businessLocationLatitude !== 'number' || typeof businessLocationLongitude !== 'number') {
         return res.status(400).json({ message: 'businessLocationLatitude y businessLocationLongitude deben ser números' });
-      }
-
-      if (!req.body.businessLocationLatitude || !req.body.businessLocationLongitude) {
-        return res.status(400).json({ message: 'Faltan longitud o latitud' });
       }
   
       let imageURL = "";

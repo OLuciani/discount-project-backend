@@ -43,21 +43,11 @@ const offeredDiscountSchema = mongoose.Schema({
   },
   businesLocationLatitude: {
     type: Number,
-    get: v => {
-        return parseFloat(v).toFixed(7); // Convierte el valor a Double
-    },
-    set: v => {
-        return parseFloat(v).toFixed(7); // Convierte el valor a Double
-    }
+    required: true,
 },
 businessLocationLongitude: {
     type: Number,
-    get: v => {
-        return parseFloat(v).toFixed(7); // Convierte el valor a Double
-    },
-    set: v => {
-        return parseFloat(v).toFixed(7); // Convierte el valor a Double
-    }
+    required: true,
 },
 });
 
