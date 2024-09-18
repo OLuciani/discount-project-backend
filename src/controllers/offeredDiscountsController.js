@@ -64,17 +64,13 @@ const controller = {
 
       console.log('Datos recibidos en discount_create:', req.body);
 
+      // Convertir las coordenadas a números
+      const numberBusinessLocationLatitude = parseFloat(businessLocationLatitude);
+      const numberBusinessLocationLongitude = parseFloat(businessLocationLongitude);
 
-      console.log("Valor recibido en req.body para businessLocationLatitude: ", businessLocationLatitude);
-
-      console.log("Valor recibido en req.body para businessLocationLongitude: ", businessLocationLongitude);
-
-      if (!businessLocationLatitude || !businessLocationLongitude) {
-        return res.status(400).json({ message: 'Faltan longitud o latitud' });
-      }
-      
-      if (typeof businessLocationLatitude !== 'number' || typeof businessLocationLongitude !== 'number') {
-        return res.status(400).json({ message: 'businessLocationLatitude y businessLocationLongitude deben ser números' });
+      // Verificar si las coordenadas son válidas
+      if (isNaN(numberBusinessLocationLatitude) || isNaN(numberBusinessLocationLongitude)) {
+        return res.status(400).json({ message: 'businessLocationLatitude y businessLocationLongitude deben ser números válidos' });
       }
   
       let imageURL = "";
@@ -133,8 +129,8 @@ const controller = {
         startDateTime,
         durationDays,
         expirationDate,
-        businessLocationLatitude: businessLocationLatitude,
-        businessLocationLongitude: businessLocationLongitude
+        businessLocationLatitude: numberBusinessLocationLatitude,
+        businessLocationLongitude: numberBusinessLocationLongitude
       });
   
       const savedDiscount = await newOfferedDiscount.save();
