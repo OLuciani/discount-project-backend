@@ -41,14 +41,14 @@ const offeredDiscountSchema = mongoose.Schema({
     type: Number,
     default: 0, // Inicializa con 0 descuentos consumidos
   },
-  businesLocationLatitude: {
+  businessLocationLatitude: {
     type: Number,
     required: true,
-},
-businessLocationLongitude: {
+  },
+  businessLocationLongitude: {
     type: Number,
     required: true,
-},
+  },
 });
 
 const OfferedDiscount = mongoose.model(
