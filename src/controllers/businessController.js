@@ -481,8 +481,8 @@ const controller = {
       const newImageURL = req.file.imageUrl;
 
       // Si ya había una imagen almacenada y es diferente de la nueva
-      if (existingDiscount && newImageURL !== existingDiscount.imageURL) {
-        const oldImageURL = existingDiscount.imageURL;
+      if (existingBusiness && newImageURL !== existingBusiness.imageURL) {
+        const oldImageURL = existingBusiness.imageURL;
 
         // Extraer el nombre del archivo de la URL correctamente
         const decodedURL = decodeURIComponent(oldImageURL); // Decodifica los caracteres especiales como %2F

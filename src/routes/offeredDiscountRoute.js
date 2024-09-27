@@ -25,6 +25,8 @@ router.patch("/discount_update_generateDiscounts/:_id", authenticateToken, offer
 router.patch("/discount_update_usedDiscounts/:_id", authenticateToken,
 offeredDiscountsController.discount_update_usedDiscounts);
 
+router.patch("/discount_update_viewsDiscounts/:_id", offeredDiscountsController.discount_update_viewsDiscounts);
+
 router.delete("/discount_delete/:_id", authenticateToken, offeredDiscountsController.discount_delete);
 
 

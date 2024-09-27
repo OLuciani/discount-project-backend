@@ -25,7 +25,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Función para desactivar los descuentos expirados
-/* export const deactivateExpiredDiscounts = async () => {
+export const deactivateExpiredDiscounts = async () => {
   try {
     const now = new Date();
     const expiredDiscounts = await OfferedDiscount.find({
@@ -43,10 +43,10 @@ const __dirname = dirname(__filename);
   } catch (error) {
     console.error("Error al desactivar descuentos expirados:", error);
   }
-}; */
+};
 
-/* // Llamo a la función cada hora para desactivar los descuentos expirados.
-setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Se ejecuta cada 1 hora */
+// Llamo a la función cada hora para desactivar los descuentos expirados.
+setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Se ejecuta cada 1 hora
 
 const controller = {
   //Este funciona perfecto sin guardar imagen en Firebase Storage
@@ -722,6 +722,36 @@ const controller = {
       const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
         _id,
         { $inc: { usedDiscounts: 1 } },
+        { new: true }
+      );
+
+      if (!updatedDiscount) {
+        return res
+          .status(500)
+          .json({ message: "Error al actualizar el descuento" });
+      }
+
+      res.status(200).json({
+        message: "Used discounts actualizado correctamente",
+        discount: updatedDiscount,
+      });
+    } catch (error) {
+      console.error("Error al actualizar usedDiscounts:", error.message);
+      res.status(500).json({ error: "Error al actualizar usedDiscounts" });
+    }
+  },
+  discount_update_viewsDiscounts: async (req, res) => {
+    try {
+      const { _id } = req.params;
+
+      const existingDiscount = await OfferedDiscount.findById(_id);
+      if (!existingDiscount) {
+        return res.status(404).json({ message: "Descuento no encontrado" });
+      }
+
+      const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
+        _id,
+        { $inc: { discountViews: 1 } },
         { new: true }
       );
 

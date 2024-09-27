@@ -41,7 +41,7 @@ const offeredDiscountSchema = mongoose.Schema({
     type: Number,
     default: 0, // Inicializa con 0 descuentos consumidos
   },
-  discounts_views: { type: Number, default: 0 }, // Cuántas veces se vieron los detalles del descuento
+  discountViews: { type: Number, default: 0 }, // Cuántas veces se vieron los detalles del descuento
   businessLocationLatitude: {
     type: Number,
     required: true,
