@@ -109,24 +109,29 @@ const controller = {
 
 export default controller; */
 
-
-
 import mongoose from "mongoose";
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 import Business from "../models/Business.model.js";
 import User from "../models/User.model.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import fs from "fs/promises"; // Importar fs para operaciones de sistema de archivos
+import { admin } from "../../config/firebase.js";
+
+const bucket = admin.storage().bucket(); // Aquí 
 
 dotenv.config();
 
 // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
-  .connect("mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project")
+  .connect(
+    "mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project"
+  )
   .then(() => console.log("Conectado a Base de Datos"))
-  .catch((error) => console.error('Error conectando a la base de datos:', error));
+  .catch((error) =>
+    console.error("Error conectando a la base de datos:", error)
+  );
 
 // Establezco una opción adicional para consultas estrictas
 mongoose.set("strictQuery", true);
@@ -135,89 +140,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const controller = {
+  //Este funciona perfecto antes de subir imagen a Firebase Storage
   /* business_create: async (req, res) => {
-    try {
-      const {
-        ownerName,
-        businessName,
-        businessType,
-        address,
-        city,
-        country,
-        ownerId,
-      } = req.body;
-
-       // Validar campos obligatorios
-       if (!ownerName || !businessName || !businessType || !address || !city || !country || !ownerId) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios.' });
-      }
-
-      // Obtener la URL del archivo cargado
-      let imageURL = '';
-      if (req.file) {
-        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
-      }
-
-      const apiKey = process.env.HERE_API_KEY;
-      const fullAddress = `${address}, ${city}. ${country}`;
-
-       // Verificar si la clave API está configurada
-       if (!apiKey) {
-        return res.status(500).json({ error: 'API Key para geocodificación no configurada.' });
-      }
-
-      // Realizo la solicitud a la API de geocodificación
-      const response = await fetch(`https://geocode.search.hereapi.com/v1/geocode?q=${fullAddress}&apiKey=${apiKey}`);
-      
-
-      if (!response.ok) {
-        return res.status(500).json({ error: 'Error al comunicarse con el servicio de geocodificación.' });
-      }
-
-      const data = await response.json();
-
-      if (data.items.length === 0) {
-        return res.status(404).json({ error: 'No se encontraron coordenadas para la dirección proporcionada.' });
-      }
-
-
-      const busineesLatitude = data.items[0].position.lat;
-      const businessLongitude = data.items[0].position.lng;
-
-      //console.log("Valor de latitud: ", busineesLatitude);
-      //console.log("Valor de longitud: ", businessLongitude);
-
-      const newBusiness = new Business({
-        ownerName,
-        businessName,
-        businessType,
-        address,
-        city,
-        country,
-        latitude: busineesLatitude,
-        longitude: businessLongitude,
-        ownerId,
-        imageURL,
-      });
-
-      const savedBusiness = await newBusiness.save();
-      
-      res.status(200).json({ message: 'El nuevo negocio se guardó exitosamente.', _id: savedBusiness._id, businessType: savedBusiness.businessType });
-
-    } catch (error) {
-      // Aquí manejo los errores en caso de que no se pueda guardar el negocio en la base de datos.
-      console.error('Error en el registro del negocio:', error.message);
-      res.status(500).json({ error: 'Error en el registro del negocio.' });
-
-      // Gestión de errores más específica
-      if (error.name === 'ValidationError') {
-        res.status(400).json({ error: 'Datos de entrada inválidos.' });
-      } else {
-        res.status(500).json({ error: 'Error en el registro del negocio.' });
-      }
-    }
-  }, */
-  business_create: async (req, res) => {
     try {
       const {
         ownerName,
@@ -237,9 +161,7 @@ const controller = {
   
       // Obtener la URL del archivo cargado
       let imageURL = '';
-      /* if (req.file) {
-        imageURL = "img/" + req.file.filename; // Usar la ruta relativa del archivo
-      } */
+     
       if (req.file && req.file.processedFilePath) {
         imageURL = "img/" + req.file.processedFilePath;
       }
@@ -297,14 +219,125 @@ const controller = {
         res.status(500).json({ error: 'Error en el registro del negocio.' });
       }
     }
-  },  
+  }, */
+  business_create: async (req, res) => {
+    try {
+      const {
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        addressNumber,
+        city,
+        country,
+        ownerId,
+      } = req.body;
+
+      // Validar campos obligatorios
+      if (
+        !ownerName ||
+        !businessName ||
+        !businessType ||
+        !address ||
+        !addressNumber ||
+        !city ||
+        !country ||
+        !ownerId
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Todos los campos son obligatorios." });
+      }
+
+      // Obtener la URL del archivo cargado
+      let imageURL = "";
+
+      //Verifica si hay un archivo subido y si es así guarda en su URL
+      if (req.file && req.file.imageUrl) {
+        imageURL = req.file.imageUrl;
+      }
+
+      const apiKey = process.env.HERE_API_KEY;
+
+      // Verificar si la clave API está configurada
+      if (!apiKey) {
+        return res
+          .status(500)
+          .json({ error: "API Key para geocodificación no configurada." });
+      }
+
+      const fullAddress = `${address} ${addressNumber}, ${city}, ${country}`;
+
+      // Realizo la solicitud a la API de geocodificación
+      const response = await fetch(
+        `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(
+          fullAddress
+        )}&apiKey=${apiKey}`
+      );
+
+      if (!response.ok) {
+        return res
+          .status(500)
+          .json({
+            error: "Error al comunicarse con el servicio de geocodificación.",
+          });
+      }
+
+      const data = await response.json();
+
+      if (data.items.length === 0) {
+        return res
+          .status(404)
+          .json({
+            error:
+              "No se encontraron coordenadas para la dirección proporcionada.",
+          });
+      }
+
+      const position = data.items[0].position;
+      const businessLatitude = position.lat;
+      const businessLongitude = position.lng;
+
+      const newBusiness = new Business({
+        ownerName,
+        businessName,
+        businessType,
+        address,
+        addressNumber,
+        city,
+        country,
+        latitude: businessLatitude,
+        longitude: businessLongitude,
+        ownerId,
+        imageURL,
+      });
+
+      const savedBusiness = await newBusiness.save();
+
+      res
+        .status(200)
+        .json({
+          message: "El nuevo negocio se guardó exitosamente.",
+          _id: savedBusiness._id,
+          businessType: savedBusiness.businessType,
+        });
+    } catch (error) {
+      console.error("Error en el registro del negocio:", error.message);
+
+      if (error.name === "ValidationError") {
+        res.status(400).json({ error: "Datos de entrada inválidos." });
+      } else {
+        res.status(500).json({ error: "Error en el registro del negocio." });
+      }
+    }
+  },
   business_list: (req, res) => {
     Business.find()
-    .then((allBusiness) => res.json(allBusiness))
-    .catch((error) => {
-      console.error("Error al buscar negocios: ", error);
-      res.status(500).json({ error: "Error al buscar negocios"});
-    });
+      .then((allBusiness) => res.json(allBusiness))
+      .catch((error) => {
+        console.error("Error al buscar negocios: ", error);
+        res.status(500).json({ error: "Error al buscar negocios" });
+      });
   },
   business_detail: (req, res) => {
     //const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
@@ -316,16 +349,17 @@ const controller = {
 
     let businessId = "";
 
-    if(mobileBusinessId) {
-      businessId = mobileBusinessId
+    if (mobileBusinessId) {
+      businessId = mobileBusinessId;
     } else {
-      businessId = webBusinessId
+      businessId = webBusinessId;
     }
 
-    console.log("Valor de businessId: ", businessId)
+    console.log("Valor de businessId: ", businessId);
     Business.findById(businessId) // Busco el negocio por su ID
       .then((oneBusiness) => {
-        if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
+        if (!oneBusiness) {
+          // Manejo el caso si el negocio no se encuentra
           return res.status(404).json({ message: "Negocio no encontrado" });
         }
         res.json(oneBusiness); // Envío los datos del negocio encontrado como respuesta
@@ -334,13 +368,15 @@ const controller = {
         console.error("Error al buscar el negocio: ", error);
         res.status(500).json({ error: "Error al buscar el negocio" });
       });
-  }, 
+  },
   light_business_details: (req, res) => {
     const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud
-    
-    Business.findById(businessId).select('-ownerId -ownerName -_id') // Busco el negocio por su ID y evito mostrar datos sensibles.
+
+    Business.findById(businessId)
+      .select("-ownerId -ownerName -_id") // Busco el negocio por su ID y evito mostrar datos sensibles.
       .then((oneBusiness) => {
-        if (!oneBusiness) { // Manejo el caso si el negocio no se encuentra
+        if (!oneBusiness) {
+          // Manejo el caso si el negocio no se encuentra
           return res.status(404).json({ message: "Negocio no encontrado" });
         }
         res.json(oneBusiness); // Envío los datos del negocio encontrado como respuesta
@@ -349,77 +385,190 @@ const controller = {
         console.error("Error al buscar el negocio: ", error);
         res.status(500).json({ error: "Error al buscar el negocio" });
       });
-  }, 
-  update_business: async (req, res) => {
+  },
+  //Este update_business anda perfecto sin subir imagen a Firebase Storage
+  /* update_business: async (req, res) => {
     const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
-    const { businessName, address, city, country, businessType} = req.body;
+    const { businessName, address, city, country, businessType } = req.body;
 
     let imageURL = "";
 
-      const existingBusiness = await Business.findById(businessId);
-      if (existingBusiness) {
-        imageURL = existingBusiness.imageURL;
-      }
+    const existingBusiness = await Business.findById(businessId);
+    if (existingBusiness) {
+      imageURL = existingBusiness.imageURL;
+    }
 
-      /* if (req.file) {
-        imageURL = "img/" + req.file.filename; */
-        if (req.file && req.file.processedFilePath) {
-          imageURL = "img/" + req.file.processedFilePath;
+    if (req.file && req.file.processedFilePath) {
+      imageURL = "img/" + req.file.processedFilePath;
 
-        if (existingBusiness && imageURL !== existingBusiness.imageURL) {
-          const existingImagePath = path.join(
-            __dirname,
-            "../../public",
-            existingBusiness.imageURL
-          );
+      if (existingBusiness && imageURL !== existingBusiness.imageURL) {
+        const existingImagePath = path.join(
+          __dirname,
+          "../../public",
+          existingBusiness.imageURL
+        );
 
-          try {
-            await fs.unlink(existingImagePath);
-            console.log(
-              "Imagen anterior eliminada:",
-              existingBusiness.imageURL
-            );
-          } catch (error) {
-            console.error("Error al eliminar la imagen anterior:", error);
-          }
+        try {
+          await fs.unlink(existingImagePath);
+          console.log("Imagen anterior eliminada:", existingBusiness.imageURL);
+        } catch (error) {
+          console.error("Error al eliminar la imagen anterior:", error);
         }
       }
+    }
     //console.log("valor de address: ", address);
-  
+
     // Validar campos obligatorios
     if (req.body.length === 0) {
-      return res.status(400).json({ error: 'No hay campos para actualizar.' });
+      return res.status(400).json({ error: "No hay campos para actualizar." });
     }
-  
+
     try {
       // Buscar el negocio por su ID y actualizarlo
       const updatedBusiness = await Business.findByIdAndUpdate(
         businessId,
-        {businessName: businessName, 
-          address: address, 
-          city: city, 
-          country: country, 
-          businessType: businessType, 
-          imageURL
-        }, 
-        { new: true, runValidators: true });
-  
+        {
+          businessName: businessName,
+          address: address,
+          city: city,
+          country: country,
+          businessType: businessType,
+          imageURL,
+        },
+        { new: true, runValidators: true }
+      );
+
       if (!updatedBusiness) {
         return res.status(404).json({ message: "Negocio no encontrado" });
       }
-  
-      res.status(200).json({ message: 'Negocio actualizado exitosamente.', updatedBusiness: updatedBusiness });
+
+      res
+        .status(200)
+        .json({
+          message: "Negocio actualizado exitosamente.",
+          updatedBusiness: updatedBusiness,
+        });
     } catch (error) {
-      console.error('Error al actualizar el negocio:', error);
-  
-      if (error.name === 'ValidationError') {
-        return res.status(400).json({ error: 'Datos de entrada inválidos.', details: error.errors });
+      console.error("Error al actualizar el negocio:", error);
+
+      if (error.name === "ValidationError") {
+        return res
+          .status(400)
+          .json({
+            error: "Datos de entrada inválidos.",
+            details: error.errors,
+          });
       } else {
-        return res.status(500).json({ error: 'Error al actualizar el negocio.' });
+        return res
+          .status(500)
+          .json({ error: "Error al actualizar el negocio." });
       }
     }
-  }
-  
+  }, */
+  update_business: async (req, res) => {
+    const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
+    const { businessName, address, city, country, businessType } = req.body;
+
+    let imageURL = "";
+
+    const existingBusiness = await Business.findById(businessId);
+    if (existingBusiness) {
+      imageURL = existingBusiness.imageURL;
+    }
+
+    // Verifica si se subió una nueva imagen
+    if (req.file && req.file.imageUrl) {
+      const newImageURL = req.file.imageUrl;
+
+      // Si ya había una imagen almacenada y es diferente de la nueva
+      if (existingDiscount && newImageURL !== existingDiscount.imageURL) {
+        const oldImageURL = existingDiscount.imageURL;
+
+        // Extraer el nombre del archivo de la URL correctamente
+        const decodedURL = decodeURIComponent(oldImageURL); // Decodifica los caracteres especiales como %2F
+        const regex = /\/o\/(.*?)\?/; // Extrae lo que está entre "/o/" y "?"
+        const matches = decodedURL.match(regex);
+
+        let fileName = null;
+        if (matches && matches[1]) {
+          fileName = matches[1]; // El nombre del archivo será algo como "folder/fileName"
+        } else {
+          console.error(
+            "No se pudo extraer el nombre del archivo de la URL:",
+            oldImageURL
+          );
+        }
+
+        if (fileName) {
+          try {
+            // Elimina la imagen anterior de Firebase Storage
+            await bucket.file(fileName).delete();
+            console.log(
+              "Imagen anterior eliminada de Firebase:",
+              oldImageURL
+            );
+          } catch (error) {
+            console.error(
+              "Error al eliminar la imagen anterior de Firebase:",
+              error
+            );
+          }
+        }
+      }
+
+      // Actualiza la URL de la imagen
+      imageURL = newImageURL;
+    }
+
+    //console.log("valor de address: ", address);
+
+    // Validar campos obligatorios
+    if (req.body.length === 0) {
+      return res.status(400).json({ error: "No hay campos para actualizar." });
+    }
+
+    try {
+      // Buscar el negocio por su ID y actualizarlo
+      const updatedBusiness = await Business.findByIdAndUpdate(
+        businessId,
+        {
+          businessName: businessName,
+          address: address,
+          city: city,
+          country: country,
+          businessType: businessType,
+          imageURL,
+        },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedBusiness) {
+        return res.status(404).json({ message: "Negocio no encontrado" });
+      }
+
+      res
+        .status(200)
+        .json({
+          message: "Negocio actualizado exitosamente.",
+          updatedBusiness: updatedBusiness,
+        });
+    } catch (error) {
+      console.error("Error al actualizar el negocio:", error);
+
+      if (error.name === "ValidationError") {
+        return res
+          .status(400)
+          .json({
+            error: "Datos de entrada inválidos.",
+            details: error.errors,
+          });
+      } else {
+        return res
+          .status(500)
+          .json({ error: "Error al actualizar el negocio." });
+      }
+    }
+  },
 };
 
 export default controller;

@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url'; // Esta línea importa la función fileURLToPath del módulo url de Node.js. Esta función se utiliza para convertir una URL de archivo en un camino de acceso de archivo.
 import { dirname } from 'path'; // Aquí importo la función dirname del módulo path de Node.js. La función dirname se utiliza para obtener el nombre del directorio de un camino de acceso.
 import cookieParser from "cookie-parser";
-import { deactivateExpiredDiscounts } from "./controllers/offeredDiscountsController.js";
+/* import { deactivateExpiredDiscounts } from "./controllers/offeredDiscountsController.js"; */
 import mongoose from "mongoose";
 
 

@@ -18,8 +18,8 @@ const transporter = nodemailer.createTransport({
 
 const sendConfirmEmail = async (email, token) => {
   try {
-    const resetLink = `http://localhost:8081/register?token=${token}&email=${email}`;
-    //const resetLink = `${process.env.FRONTEND_WEB_URL}/register?token=${token}&email=${email}`;
+    //const resetLink = `http://localhost:8081/register?token=${token}&email=${email}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/register?token=${token}&email=${email}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
