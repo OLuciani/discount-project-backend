@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
+//import mongoose from "mongoose";
 //import jwt from "jsonwebtoken";
 
-// Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
+/* // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
   .connect("mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project")
   .then(() => console.log("Conectado a Base de Datos"));
 // Establezco una opción adicional para consultas estrictas
-mongoose.set("strictQuery", true);
+mongoose.set("strictQuery", true); */
 
 import UserDiscountQr from "../models/UserDiscountQr.model.js";
 

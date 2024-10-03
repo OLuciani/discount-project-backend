@@ -1,7 +1,7 @@
 import { validationResult } from "express-validator";
 import nodemailer from "nodemailer";
 import { auth, sendPasswordResetEmail, admin } from "../../config/firebase.js";
-import mongoose from "mongoose";
+//import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
@@ -14,6 +14,33 @@ const transporter = nodemailer.createTransport({
     pass: process.env.NODEMAILER_PASSWORD,
   },
 });
+
+// Función para enviar correo a administradores
+const notifyAdminsOfNewBusiness = async (user, fileURL) => {
+  try {
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: process.env.ADMIN_EMAILS, // Un listado de correos de administradores
+      subject: "Nuevo administrador de negocio registrado",
+      html: `
+        <h5>Nuevo administrador de negocio registrado</h5>
+        <p>Un nuevo negocio ha solicitado registro en la aplicación:</p>
+        <ul>
+          <li>Nombre: ${user.name} ${user.lastName}</li>
+          <li>Email: ${user.email}</li>
+          <li>Nombre del negocio: ${user.businessName}</li>
+          <li>Tipo de negocio: ${user.businessType}</li>
+        </ul>
+        <p>Puedes revisar el documento de inscripción del negocio aquí: <a href="${fileURL}">Descargar archivo</a></p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Correo de notificación enviado a los administradores");
+  } catch (error) {
+    console.error("Error al enviar correo a los administradores:", error);
+  }
+};
 
 
 const sendConfirmEmail = async (email, token) => {

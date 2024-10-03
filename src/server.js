@@ -68,22 +68,48 @@ app.get('/set-cookie', (req, res) => {
 
 console.log('Vistas:', path.join(__dirname, '/views'));
 
+const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
+
+// Función para conectar a la base de datos
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(URI_MONGO_DB);
+    console.log("Conectado a la Base de Datos MongoDB");
+  } catch (error) {
+    console.error("Error de conexión a la Base de Datos MongoDB:", error);
+  }
+}
+
+// Llamada a la función de conexión
+connectToDatabase();
+
+// Establezco una opción adicional para consultas estrictas
+mongoose.set("strictQuery", true);
+
+/* mongoose.connect(
+  URI_MONGO_DB,
+  { useNewUrlParser: true, useUnifiedTopology: true }
+).then(() => {
+  console.log("Conectado a la Base de Datos MongoDB");
+}).catch((error) => {
+  console.error("Error de conexión a la Base de Datos MongoDB:", error);
+}); */
 
 // Conexión a la base de datos MongoDB
-mongoose.connect(
+/* mongoose.connect(
   "mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project",
   { useNewUrlParser: true, useUnifiedTopology: true }
 ).then(() => {
   console.log("Conectado a la Base de Datos MongoDB");
-
-  // Llamo a la función para desactivar descuentos expirados al iniciar la aplicación
-  deactivateExpiredDiscounts();
-
-  // Llamo a la función periódicamente cada hora
-  setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Ejecutar cada hora
 }).catch((error) => {
   console.error("Error de conexión a la Base de Datos MongoDB:", error);
-});
+}); */
+
+// Llamo a la función para desactivar descuentos expirados al iniciar la aplicación
+deactivateExpiredDiscounts();
+
+// Llamo a la función periódicamente cada hora
+setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Ejecutar cada hora
 
 // Importación de rutas
 import mainRoute from "./routes/mainRoute.js";   //Hay que poner si o si .js

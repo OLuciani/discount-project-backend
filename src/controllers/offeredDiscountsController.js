@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+//import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
@@ -8,14 +8,14 @@ import { admin } from "../../config/firebase.js";
 
 const bucket = admin.storage().bucket(); // Aquí puedes acceder al bucket de firebase
 
-// Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
+/* // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
   .connect(
     "mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project"
   )
   .then(() => console.log("Conectado a Base de Datos"));
 // Establezco una opción adicional para consultas estrictas
-mongoose.set("strictQuery", true);
+mongoose.set("strictQuery", true); */
 
 import OfferedDiscount from "../models/OfferedDiscount.model.js";
 
@@ -286,12 +286,14 @@ const controller = {
           });
       }
 
-      let imageURL = "";
-
+       let imageURL = "";
+      /*
       //Verifica si hay un archivo subido y si es así guarda en su URL
       if (req.file && req.file.imageUrl) {
         imageURL = req.file.imageUrl;
-      }
+      } */
+
+      const imageUrl = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
 
       // Aquí puedes eliminar la obtención de metadatos de la imagen,
       // ya que no están disponibles en req.file si usas memoryStorage
@@ -334,7 +336,7 @@ const controller = {
         normalPrice: normalPriceNumber.toNumber(),
         priceWithDiscount: newPrice,
         discountAmount: discountAmountNumber.toNumber(),
-        imageURL,
+        imageURL: imageUrl,
         validityPeriod: durationDays,
         isActive: isActiveBoolean,
         startDateTime,
@@ -550,7 +552,7 @@ const controller = {
         imageURL = newImageURL;
       } */
 
-      let imageURL = "";
+      /* let imageURL = "";
 
       // Buscar el descuento existente por su ID
       const existingDiscount = await OfferedDiscount.findById(_id);
@@ -558,49 +560,90 @@ const controller = {
         imageURL = existingDiscount.imageURL;
       }
 
-      // Verifica si se subió una nueva imagen
-      if (req.file && req.file.imageUrl) {
-        const newImageURL = req.file.imageUrl;
 
-        // Si ya había una imagen almacenada y es diferente de la nueva
-        if (existingDiscount && newImageURL !== existingDiscount.imageURL) {
-          const oldImageURL = existingDiscount.imageURL;
+      // Verifica si se subió una nueva imagen y si es asi se crea la variable newImageURL
+      let newImageURL = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
 
-          // Extraer el nombre del archivo de la URL correctamente
-          const decodedURL = decodeURIComponent(oldImageURL); // Decodifica los caracteres especiales como %2F
-          const regex = /\/o\/(.*?)\?/; // Extrae lo que está entre "/o/" y "?"
-          const matches = decodedURL.match(regex);
+      // Si ya había una imagen almacenada y es diferente de la nueva
+      if (existingDiscount && newImageURL !== existingDiscount.imageURL) {
+        const oldImageURL = existingDiscount.imageURL;
 
-          let fileName = null;
-          if (matches && matches[1]) {
-            fileName = matches[1]; // El nombre del archivo será algo como "folder/fileName"
-          } else {
-            console.error(
-              "No se pudo extraer el nombre del archivo de la URL:",
+        // Extraer el nombre del archivo de la URL correctamente
+        const decodedURL = decodeURIComponent(oldImageURL); // Decodifica los caracteres especiales como %2F
+        const regex = /\/o\/(.*?)\?/; // Extrae lo que está entre "/o/" y "?"
+        const matches = decodedURL.match(regex);
+
+        let fileName = null;
+        if (matches && matches[1]) {
+          fileName = matches[1]; // El nombre del archivo será algo como "folder/fileName"
+        } else {
+          console.error(
+            "No se pudo extraer el nombre del archivo de la URL:",
+            oldImageURL
+          );
+        }
+
+        if (fileName) {
+          try {
+            // Elimina la imagen anterior de Firebase Storage
+            await bucket.file(fileName).delete();
+            console.log(
+              "Imagen anterior eliminada de Firebase:",
               oldImageURL
             );
+          } catch (error) {
+            console.error(
+              "Error al eliminar la imagen anterior de Firebase:",
+              error
+            );
           }
+        }
+      }
 
-          if (fileName) {
-            try {
-              // Elimina la imagen anterior de Firebase Storage
-              await bucket.file(fileName).delete();
-              console.log(
-                "Imagen anterior eliminada de Firebase:",
-                oldImageURL
-              );
-            } catch (error) {
-              console.error(
-                "Error al eliminar la imagen anterior de Firebase:",
-                error
-              );
-            }
+      // Actualiza la URL de la imagen
+      imageURL = newImageURL; */
+
+      let imageURL = "";
+
+      // Buscar el descuento existente por su ID
+      const existingDiscount = await OfferedDiscount.findById(_id);
+      if (existingDiscount) {
+        imageURL = existingDiscount.imageURL; // Mantiene la URL de la imagen existente.
+      }
+
+      // Verifica si se subió una nueva imagen
+      const newImageURL = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+
+      // Si se subió una nueva imagen, elimina la antigua y actualiza la URL
+      if (newImageURL) {
+        const oldImageURL = existingDiscount.imageURL;
+
+        // Extrae el nombre del archivo de la URL de Firebase
+        const decodedURL = decodeURIComponent(oldImageURL); // Decodifica caracteres especiales.
+        const regex = /\/o\/(.*?)\?/; // Expresión regular para extraer el nombre del archivo.
+        const matches = decodedURL.match(regex);
+
+        let fileName = null;
+        if (matches && matches[1]) {
+          fileName = matches[1]; // Nombre del archivo (carpeta/nombreArchivo).
+        } else {
+          console.error("No se pudo extraer el nombre del archivo de la URL:", oldImageURL);
+        }
+
+        if (fileName) {
+          try {
+            // Elimina la imagen antigua de Firebase Storage
+            await bucket.file(fileName).delete();
+            console.log("Imagen anterior eliminada de Firebase:", oldImageURL);
+          } catch (error) {
+            console.error("Error al eliminar la imagen anterior de Firebase:", error);
           }
         }
 
-        // Actualiza la URL de la imagen
+        // Actualiza la URL de la imagen a la nueva
         imageURL = newImageURL;
       }
+      
 
       const normalPriceNumber = new Decimal(normalPrice);
       const discountAmountNumber = new Decimal(discountAmount);
@@ -633,7 +676,7 @@ const controller = {
           normalPrice: normalPriceNumber.toNumber(),
           priceWithDiscount: newPrice,
           discountAmount: discountAmountNumber.toNumber(),
-          imageURL,
+          imageURL: imageURL,
           validityPeriod,
           isActive: isActiveBoolean,
           expirationDate,
@@ -762,12 +805,12 @@ const controller = {
       }
 
       res.status(200).json({
-        message: "Used discounts actualizado correctamente",
+        message: "viewsDiscounts actualizado correctamente",
         discount: updatedDiscount,
       });
     } catch (error) {
-      console.error("Error al actualizar usedDiscounts:", error.message);
-      res.status(500).json({ error: "Error al actualizar usedDiscounts" });
+      console.error("Error al actualizar viewsDiscounts:", error.message);
+      res.status(500).json({ error: "Error al actualizar viewsDiscounts" });
     }
   },
   discount_delete: async (req, res) => {

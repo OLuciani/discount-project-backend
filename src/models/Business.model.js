@@ -47,6 +47,8 @@ const businessSchema = mongoose.Schema({
     },
     ownerId: String,
     imageURL: String,
+    pdfBusinessRegistration: String,
+    urlLogo: String,
 });
 
 // Crea el modelo de negocio

@@ -109,7 +109,7 @@ const controller = {
 
 export default controller; */
 
-import mongoose from "mongoose";
+//import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Business from "../models/Business.model.js";
 import User from "../models/User.model.js";
@@ -123,7 +123,7 @@ const bucket = admin.storage().bucket(); // Aquí
 
 dotenv.config();
 
-// Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
+/* // Establezco la conexión a la base de datos con la URL almacenada en una variable de entorno
 mongoose
   .connect(
     "mongodb+srv://lucianioscar1:shushonga65catriel1965@cluster-discounts-proje.hqzkjw6.mongodb.net/discounts-project"
@@ -134,7 +134,7 @@ mongoose
   );
 
 // Establezco una opción adicional para consultas estrictas
-mongoose.set("strictQuery", true);
+mongoose.set("strictQuery", true); */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -249,13 +249,24 @@ const controller = {
           .json({ error: "Todos los campos son obligatorios." });
       }
 
-      // Obtener la URL del archivo cargado
+      /* // Obtener la URL del archivo cargado
       let imageURL = "";
 
       //Verifica si hay un archivo subido y si es así guarda en su URL
       if (req.file && req.file.imageUrl) {
         imageURL = req.file.imageUrl;
       }
+
+      let pdfBusinessRegistration = "";
+
+      if (req.file && req.file.documentUrl) {
+        pdfBusinessRegistration = req.file.documentUrl;
+      } */
+      
+      //Creo las url de los archivos subidos a firebase storage
+      const imageUrl = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+      const logoUrl = req.files.logo ? req.files.logo[0].firebaseUrl : null;
+      const pdfUrl = req.files.pdfBusinessRegistration ? req.files.pdfBusinessRegistration[0].firebaseUrl : null;
 
       const apiKey = process.env.HERE_API_KEY;
 
@@ -309,7 +320,9 @@ const controller = {
         latitude: businessLatitude,
         longitude: businessLongitude,
         ownerId,
-        imageURL,
+        imageURL:imageUrl,
+        pdfBusinessRegistration:pdfUrl,
+        urlLogo:logoUrl,
       });
 
       const savedBusiness = await newBusiness.save();
@@ -469,7 +482,7 @@ const controller = {
     const { businessId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
     const { businessName, address, city, country, businessType } = req.body;
 
-    let imageURL = "";
+    /* let imageURL = "";
 
     const existingBusiness = await Business.findById(businessId);
     if (existingBusiness) {
@@ -518,7 +531,48 @@ const controller = {
 
       // Actualiza la URL de la imagen
       imageURL = newImageURL;
-    }
+    } */
+
+    let imageURL = "";
+
+      // Buscar el descuento existente por su ID
+      const existingBusiness = await Business.findById(businessId);
+      if (existingBusiness) {
+        imageURL = existingBusiness.imageURL; // Mantiene la URL de la imagen existente.
+      }
+
+      // Verifica si se subió una nueva imagen
+      const newImageURL = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+
+      // Si se subió una nueva imagen, elimina la antigua y actualiza la URL
+      if (newImageURL) {
+        const oldImageURL = existingBusiness.imageURL;
+
+        // Extrae el nombre del archivo de la URL de Firebase
+        const decodedURL = decodeURIComponent(oldImageURL); // Decodifica caracteres especiales.
+        const regex = /\/o\/(.*?)\?/; // Expresión regular para extraer el nombre del archivo.
+        const matches = decodedURL.match(regex);
+
+        let fileName = null;
+        if (matches && matches[1]) {
+          fileName = matches[1]; // Nombre del archivo (carpeta/nombreArchivo).
+        } else {
+          console.error("No se pudo extraer el nombre del archivo de la URL:", oldImageURL);
+        }
+
+        if (fileName) {
+          try {
+            // Elimina la imagen antigua de Firebase Storage
+            await bucket.file(fileName).delete();
+            console.log("Imagen anterior eliminada de Firebase:", oldImageURL);
+          } catch (error) {
+            console.error("Error al eliminar la imagen anterior de Firebase:", error);
+          }
+        }
+
+        // Actualiza la URL de la imagen a la nueva
+        imageURL = newImageURL;
+      }
 
     //console.log("valor de address: ", address);
 
@@ -537,7 +591,7 @@ const controller = {
           city: city,
           country: country,
           businessType: businessType,
-          imageURL,
+          imageURL: imageURL,
         },
         { new: true, runValidators: true }
       );
