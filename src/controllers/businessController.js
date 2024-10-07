@@ -332,7 +332,7 @@ const controller = {
         .json({
           message: "El nuevo negocio se guardó exitosamente.",
           _id: savedBusiness._id,
-          businessType: savedBusiness.businessType,
+          businessType: savedBusiness.businessType, pdfBusinessRegistration: savedBusiness.pdfBusinessRegistration
         });
     } catch (error) {
       console.error("Error en el registro del negocio:", error.message);

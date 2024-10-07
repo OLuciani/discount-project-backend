@@ -12,7 +12,10 @@ const userSchema = mongoose.Schema({
     originalEmail: { type: String, required: false }, // Original email 
     password: String,
     //isAdmin: { type: Boolean, default: false } // Marca al usuario como usuario normal por defecto
-    role: String
+    pdfBusinessRegistration: String,
+    //role: String,
+    role: { type: String, default: "user" }, // Rol inicial
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
 });
 
 const User = mongoose.model("user", userSchema);

@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Función para enviar correo a administradores
-const notifyAdminsOfNewBusiness = async (user, fileURL) => {
+const notifyAdminsOfNewBusiness = async (user) => {
   try {
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
@@ -26,12 +26,12 @@ const notifyAdminsOfNewBusiness = async (user, fileURL) => {
         <h5>Nuevo administrador de negocio registrado</h5>
         <p>Un nuevo negocio ha solicitado registro en la aplicación:</p>
         <ul>
-          <li>Nombre: ${user.name} ${user.lastName}</li>
-          <li>Email: ${user.email}</li>
+          <li>Nombre del nuevo usuario: ${user.name} ${user.lastName}</li>
+          <li>Email: ${user.originalEmail}</li>
           <li>Nombre del negocio: ${user.businessName}</li>
           <li>Tipo de negocio: ${user.businessType}</li>
         </ul>
-        <p>Puedes revisar el documento de inscripción del negocio aquí: <a href="${fileURL}">Descargar archivo</a></p>
+        <p>Puedes revisar el documento de inscripción del negocio aquí: ${user.pdfBusinessRegistration}"</p>
       `,
     };
 
@@ -41,7 +41,6 @@ const notifyAdminsOfNewBusiness = async (user, fileURL) => {
     console.error("Error al enviar correo a los administradores:", error);
   }
 };
-
 
 const sendConfirmEmail = async (email, token) => {
   try {
@@ -60,9 +59,14 @@ const sendConfirmEmail = async (email, token) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("Correo electrónico para confirmación de Email enviado con éxito");
+    console.log(
+      "Correo electrónico para confirmación de Email enviado con éxito"
+    );
   } catch (error) {
-    console.error("Error al enviar el correo electrónico de Confirmación de Email:", error);
+    console.error(
+      "Error al enviar el correo electrónico de Confirmación de Email:",
+      error
+    );
     throw error;
   }
 };
@@ -112,7 +116,7 @@ const sendMobileMongoEmail = async (email, token) => {
     // Enviar el correo electrónico
     await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error('Error al enviar correo electrónico:', error);
+    console.error("Error al enviar correo electrónico:", error);
   }
 };
 
@@ -140,8 +144,6 @@ const sendMobileMongoEmail = async (email, token) => {
     console.error('Error al enviar correo electrónico:', error);
   }
 }; */
-
-  
 
 const controller = {
   user_detail: (req, res) => {
@@ -171,10 +173,10 @@ const controller = {
   },
   confirm_email: async (req, res) => {
     //req.params.email.toLowerCase();
-    const {email} = req.body;
+    const { email } = req.body;
 
     try {
-      const normalizedEmail = email.toLowerCase();;
+      const normalizedEmail = email.toLowerCase();
 
       let existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
@@ -186,14 +188,20 @@ const controller = {
           .status(400)
           .json({ error: "El correo electrónico ya está registrado" });
       } else {
+        const confirmEmailToken = jwt.sign(
+          { email: email },
+          process.env.CONFIRM_EMAIL_SECRET,
+          {
+            expiresIn: "15m",
+          }
+        );
 
-        const confirmEmailToken = jwt.sign({ email: email }, process.env.CONFIRM_EMAIL_SECRET, {
-          expiresIn: "15m",
-        });
-  
         await sendConfirmEmail(email, confirmEmailToken);
-        console.log("Correo electrónico para confirmación de email para iniciar cuenta enviado a:", email);
-  
+        console.log(
+          "Correo electrónico para confirmación de email para iniciar cuenta enviado a:",
+          email
+        );
+
         res.json({
           //exists: !!user,
           success: true,
@@ -202,9 +210,11 @@ const controller = {
           token: confirmEmailToken,
         });
       }
-
     } catch (error) {
-      console.error("Error al procesar la solicitud de chequeo de email para crear cuenta:", error);
+      console.error(
+        "Error al procesar la solicitud de chequeo de email para crear cuenta:",
+        error
+      );
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
@@ -240,6 +250,64 @@ const controller = {
 
       const roleUser = process.env.ROLE_USER;
 
+      const newUser = new User({
+        name,
+        lastName,
+        businessName,
+        businessId,
+        businessType,
+        phone,
+        email: normalizedEmail,
+        originalEmail: email,
+        password: hashedPassword,
+        role: roleUser,
+      });
+
+      await newUser.save();
+      console.log("Nuevo usuario registrado:", newUser);
+
+      res.json({
+        message: "Registro exitoso como usuario",
+        _id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+      });
+    } catch (error) {
+      console.error("Error en el registro:", error);
+      res.status(500).json({ error: "Error en el registro" });
+    }
+  },
+  user_register_mobile: async (req, res) => {
+    const {
+      name,
+      lastName,
+      phone,
+      email,
+      password,
+      businessName,
+      businessId,
+      businessType,
+    } = req.body;
+
+    try {
+      const normalizedEmail = email.toLowerCase();
+
+      console.log("Datos recibidos para registro:", req.body);
+
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        console.log(
+          "El correo electrónico ya está registrado:",
+          normalizedEmail
+        );
+        return res
+          .status(400)
+          .json({ error: "El correo electrónico ya está registrado" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const roleUser = process.env.ROLE_USER;
 
       const newUser = new User({
         name,
@@ -268,17 +336,16 @@ const controller = {
       res.status(500).json({ error: "Error en el registro" });
     }
   },
-
   //user_update: async (req, res) => {
   businessId_and_businessType_update: async (req, res) => {
     const userId = req.params._id;
-    const { businessId, businessType } = req.body;
+    const { businessId, businessType, pdfBusinessRegistration } = req.body;
 
     try {
       console.log("Datos recibidos para actualizar usuario:", req.body);
       const updatedUser = await User.findByIdAndUpdate(
         userId,
-        { businessId, businessType },
+        { businessId, businessType, pdfBusinessRegistration },
         { new: true }
       );
 
@@ -289,6 +356,16 @@ const controller = {
 
       console.log("Usuario actualizado correctamente:", updatedUser);
       res.json({ message: "Usuario actualizado correctamente", updatedUser });
+
+      // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
+      const user = await User.findById(userId);
+      if (user) {
+        //Se envía email a la administración de la app Comé x menos para notificando que se creó una cuenta de un nuevo Negocio (se crearon los documentos user y business en Mongo DB Atlas) para revisar si cumple con los requisitos y en caso de ser asi se le adjudica el rol para poder utilizar todas las funciones de la app.
+        await notifyAdminsOfNewBusiness(user);
+        console.log(
+          "Correo electrónico para el registro de un nuevo Usuario/Negocio enviado a la administración de la aplicación Comé x menos"
+        );
+      }
     } catch (error) {
       console.error("Error al actualizar el usuario:", error);
       res.status(500).json({ error: "Error al actualizar el usuario" });
@@ -308,11 +385,9 @@ const controller = {
       if (businessType) updateData.businessType = businessType;
       if (businessName) updateData.businessName = businessName;
 
-      const updatedUser = await User.findByIdAndUpdate(
-        userId,
-        updateData,
-        { new: true }
-      );
+      const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+        new: true,
+      });
 
       if (!updatedUser) {
         console.log("Usuario no encontrado:", userId);
@@ -328,31 +403,39 @@ const controller = {
   },
   login: async (req, res) => {
     const { email, password } = req.body;
-  
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       console.log("Errores de validación:", errors.array());
-      return res.status(400).json({ code: "VALIDATION_ERROR", message: "Errores de validación", errors: errors.array() });
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Errores de validación",
+        errors: errors.array(),
+      });
     }
-  
+
     try {
       const normalizedEmail = email.toLowerCase();
-  
+
       console.log("Intentando iniciar sesión con:", normalizedEmail);
-  
+
       const user = await User.findOne({ email: normalizedEmail });
-  
+
       if (!user) {
         console.log("Usuario no registrado:", normalizedEmail);
-        return res.status(401).json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
+        return res
+          .status(401)
+          .json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
       }
-  
+
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-        return res.status(401).json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
+        return res
+          .status(401)
+          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
       }
-  
+
       //este token funciona perfecto
       /* const token = jwt.sign(
         { userId: user._id, email: user.email, role: user.role },
@@ -362,13 +445,13 @@ const controller = {
 
       //este token lo estoy probando en lugar del anterior
       const token = jwt.sign(
-        { userId: user._id,  businessId: user.businessId, role: user.role },
+        { userId: user._id, businessId: user.businessId, role: user.role },
         process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
-  
+
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-       
+
       //Esta es la que utilicé con el frontend web desplegado en vercel y funcionaba bien
       /* res.cookie('token', token, {
         httpOnly: true,
@@ -378,13 +461,12 @@ const controller = {
       }); */
 
       //Configuación que utilizo para desarrollo
-      /* res.cookie('token', token, {
+      /* res.cookie("token", token, {
         httpOnly: true,
         secure: false, // `false` en desarrollo
-        sameSite: 'Strict', // `Lax` en desarrollo
+        sameSite: "Strict", // `Lax` en desarrollo
         maxAge: 15 * 60 * 1000, // 15 minutos
       }); */
-
 
       //Configuación que utilizo para producción
       res.cookie('token', token, {
@@ -394,24 +476,25 @@ const controller = {
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/',  //Esta linea la agruegué 
       });
-      
-      
-  
+
       res.json({
         message: "Inicio de sesión exitoso",
         success: true,
         token, //Lo agregué para probar la aplicacion movil
-        //role: user.role, 
-        //_id: user._id, 
+        //role: user.role,
+        //_id: user._id,
         //name: user.name,
-       // businessName: user.businessName,
+        // businessName: user.businessName,
         //businessId: user.businessId,
         //businessType: user.businessType,
         //originalEmail: user.originalEmail, // Devolver el email original si es necesario
       });
     } catch (error) {
       console.error("Error al buscar el usuario:", error);
-      res.status(500).json({ code: "AUTHENTICATION_ERROR", message: "Error en la autenticación" });
+      res.status(500).json({
+        code: "AUTHENTICATION_ERROR",
+        message: "Error en la autenticación",
+      });
     }
   },
   //Este user_profile anda perfecto
@@ -459,90 +542,90 @@ const controller = {
   }, */
   user_profile: async (req, res) => {
     const { userId } = req.user; // Extrae el userId del objeto req.user
-   /*  const mobileUserId = req.params._id;
-    console.log("Valor de mobileUserId: ", mobileUserId);
-    const { webUserId } = req.user; // Extrae businessId del objeto req.user (del token de la cookie).
-    console.log("Valor de webUserId: ", webUserId);
-
-    let userId = "";
-
-    if(mobileUserId) {
-      userId = mobileUserId
-    } else {
-      userId = webUserId
-    } */
-
     try {
-        // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
-        const user = await User.findById(userId).select('-password -userId -businessId'); 
-        if (!user) {
-            return res.status(404).json({ message: "Usuario no encontrado" });
-        }
+      // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
+      const user = await User.findById(userId).select(
+        "-password -userId -businessId"
+      );
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
 
-        // Validar que el usuario tenga un rol asignado
-        if (!user.role) {
-            return res.status(400).json({ message: "El usuario no tiene un rol asignado" });
-        }
+      // Validar que el usuario tenga un rol asignado
+      if (!user.role) {
+        return res
+          .status(400)
+          .json({ message: "El usuario no tiene un rol asignado" });
+      }
 
-        // Cargar las variables de entorno para los roles
-        const roleAdminWeb = process.env.ROLE_ADMINWEB;
-        const roleUser = process.env.ROLE_USER;
-        const roleAdminQr = process.env.ROLE_ADMINQR;
+      // Cargar las variables de entorno para los roles
+      const roleAdminApp = process.env.ROLE_ADMINAPP;
+      const roleAdminWeb = process.env.ROLE_ADMINWEB;
+      const roleUser = process.env.ROLE_USER;
+      const roleAdminQr = process.env.ROLE_ADMINQR;
 
-        // Definir la variable roleType
-        let roleType = ""; 
+      // Definir la variable roleType
+      let roleType = "";
 
-        // Condicional para determinar el tipo de rol
-        if (user.role === roleAdminWeb) {
-            roleType = "adminWeb";
-        } else if (user.role === roleUser) {
-            roleType = "user";
-        } else if (user.role === roleAdminQr) {
-            roleType = "adminQr";
-        } else {
-            // En caso de que el rol no coincida con ninguno de los roles conocidos
-            roleType = "unknown";
-        }
+      // Condicional para determinar el tipo de rol
+      if (user.role === roleAdminApp) {
+        roleType = "adminApp";
+      } else if (user.role === roleAdminWeb) {
+        roleType = "adminWeb";
+      } else if (user.role === roleUser) {
+        roleType = "user";
+      } else if (user.role === roleAdminQr) {
+        roleType = "adminQr";
+      } else {
+        // En caso de que el rol no coincida con ninguno de los roles conocidos
+        roleType = "unknown";
+      }
 
-        // Devuelve los datos del usuario
-        res.json({
-            userRole: roleType,
-            userName: user.name,
-            businessName: user.businessName,
-            businessType: user.businessType
-        });
+      // Devuelve los datos del usuario
+      res.json({
+        userRole: roleType,
+        userName: user.name,
+        businessName: user.businessName,
+        businessType: user.businessType,
+      });
     } catch (err) {
-        // Registro del error en la consola para depuración
-        console.error("Error al obtener los datos del usuario:", err);
-        res.status(500).json({ message: "Error al obtener los datos del usuario" });
+      // Registro del error en la consola para depuración
+      console.error("Error al obtener los datos del usuario:", err);
+      res
+        .status(500)
+        .json({ message: "Error al obtener los datos del usuario" });
     }
-},
+  },
   protected_route: async (req, res) => {
     try {
-        /* if (!req.user) {
+      /* if (!req.user) {
             return res.status(401).json({ success: false, message: 'Token inválido' });
         } */
-        //const user_id = req.params._id;
-        const { userId } = req.user; // Extrae el userId del objeto req.user
-        //const user = await User.findById(user_id);
-        const user = await User.findById(userId);
-        console.log("Valor de user en protected_route: ", user);
+      //const user_id = req.params._id;
+      const { userId } = req.user; // Extrae el userId del objeto req.user
+      //const user = await User.findById(user_id);
+      const user = await User.findById(userId);
+      console.log("Valor de user en protected_route: ", user);
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
-        }
+      if (!user) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Usuario no encontrado" });
+      }
 
-        res.json({
-            success: true,
-            //userId: user._id,
-            username: user.username,
-            email: user.email
-        });
+      res.json({
+        success: true,
+        //userId: user._id,
+        username: user.username,
+        email: user.email,
+      });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'Error interno del servidor' });
+      console.error(error);
+      res
+        .status(500)
+        .json({ success: false, message: "Error interno del servidor" });
     }
-},
+  },
   checkEmail: async (req, res) => {
     const email = req.params.email.toLowerCase();
 
@@ -556,9 +639,13 @@ const controller = {
         );
       }
 
-      const token = jwt.sign({ email: user.email }, process.env.RESET_TOKEN_SECRET, {
-        expiresIn: "15m",
-      });
+      const token = jwt.sign(
+        { email: user.email },
+        process.env.RESET_TOKEN_SECRET,
+        {
+          expiresIn: "15m",
+        }
+      );
 
       await sendMongoEmail(email, token);
       console.log("Correo electrónico de restablecimiento enviado a:", email);
@@ -678,6 +765,120 @@ const controller = {
     } catch (error) {
       console.error("Error al restablecer la contraseña:", error);
       res.status(500).json({ message: "Error interno del servidor" });
+    }
+  },
+  /* pending_users: async (req, res) => {
+    try {
+      const pendingUsers = await User.find({ status: "pending" });
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error("Error al obtener usuarios pendientes:", error);
+      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
+    }
+  }, */
+  /* pending_users: async (req, res) => {
+    try {
+      const users = await User.find({ status: "pending" });
+
+      const pendingUsers= users.map((user) => {
+        // Cargar las variables de entorno para los roles
+        const roleAdminWeb = process.env.ROLE_ADMINWEB;
+        const roleUser = process.env.ROLE_USER;
+        const roleAdminQr = process.env.ROLE_ADMINQR;
+
+        // Definir la variable roleType
+        let roleType = "";
+
+        // Condicional para determinar el tipo de rol
+        if (user.role === roleAdminWeb) {
+          roleType = "adminWeb";
+        } else if (user.role === roleUser) {
+          roleType = "user";
+        } else if (user.role === roleAdminQr) {
+          roleType = "adminQr";
+        } else {
+          // En caso de que el rol no coincida con ninguno de los roles conocidos
+          roleType = "unknown";
+        }
+
+        user.role = roleType;
+      });
+
+      res.json(pendingUsers);
+    } catch (error) {
+      console.error("Error al obtener usuarios pendientes:", error);
+      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
+    }
+  }, */
+  pending_users: async (req, res) => {
+    try {
+      // Buscar usuarios con estado "pending"
+      const users = await User.find({ status: "pending" });
+
+      // Iterar sobre los usuarios y ajustar el rol
+      const pendingUsers = users.map((user) => {
+        // Cargar las variables de entorno para los roles
+        const roleAdminWeb = process.env.ROLE_ADMINWEB;
+        const roleUser = process.env.ROLE_USER;
+        const roleAdminQr = process.env.ROLE_ADMINQR;
+
+        // Definir la variable roleType
+        let roleType = "";
+
+        // Condicional para determinar el tipo de rol
+        if (user.role === roleAdminWeb) {
+          roleType = "adminWeb";
+        } else if (user.role === roleUser) {
+          roleType = "user";
+        } else if (user.role === roleAdminQr) {
+          roleType = "adminQr";
+        } else {
+          // En caso de que el rol no coincida con ninguno de los roles conocidos
+          roleType = "unknown";
+        }
+
+        // Retornar el usuario con el rol actualizado
+        return {
+          ...user._doc, // Usar el campo _doc de Mongoose para retornar los datos del usuario
+          role: roleType,
+        };
+      });
+
+      // Enviar la respuesta con la lista de usuarios pendientes y sus roles ajustados
+      res.json(pendingUsers);
+    } catch (error) {
+      // Manejo de errores
+      console.error("Error al obtener usuarios pendientes:", error);
+      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
+    }
+  },
+  approve_user: async (req, res) => {
+    const { _id } = req.params;
+    console.log("Valor de userId en el controller approve_user: ", _id);
+
+    try {
+      // Buscar el usuario por su ID
+      const user = await User.findById(_id);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      // Actualizar el estado del usuario a 'aprobado'
+      user.status = "approved"; // Asume que hay un campo 'status' que almacena el estado del usuario
+
+      const roleAdminWeb = process.env.ROLE_ADMINWEB;
+      // Si es necesario, también puedes actualizar el rol del usuario
+      user.role = roleAdminWeb; // Cambia el rol según lo que necesites
+
+      // Guardar los cambios
+      await user.save();
+
+      return res.status(200).json({ message: "Usuario aprobado exitosamente" });
+      console.log("Usuario aprobado exitosamente");
+    } catch (error) {
+      console.error("Error al aprobar el usuario:", error);
+      return res.status(500).json({ message: "Error al aprobar el usuario" });
     }
   },
 };
