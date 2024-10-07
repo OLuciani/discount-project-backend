@@ -279,14 +279,8 @@ const controller = {
   },
   user_register_mobile: async (req, res) => {
     const {
-      name,
-      lastName,
-      phone,
       email,
       password,
-      businessName,
-      businessId,
-      businessType,
     } = req.body;
 
     try {
@@ -310,12 +304,12 @@ const controller = {
       const roleUser = process.env.ROLE_USER;
 
       const newUser = new User({
-        name,
+        /* name,
         lastName,
         businessName,
         businessId,
         businessType,
-        phone,
+        phone, */
         email: normalizedEmail,
         originalEmail: email,
         password: hashedPassword,
