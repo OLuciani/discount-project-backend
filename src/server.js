@@ -118,6 +118,7 @@ import offeredDiscountsRoute from "./routes/offeredDiscountRoute.js";
 import userDiscountQrsRoute from "./routes/userDiscountQrsRoute.js";
 import businessRoute from "./routes/businessRoute.js";
 import checkAccountRoute from "./routes/checkAccountRoute.js";
+import checkAdminAppRoute from "./routes/checkAdminAppRoute.js";
 //import dashboardRoute from "./routes/dashboardRoute.js";
 
 
@@ -130,6 +131,7 @@ app.use(BASE_API_PATH, offeredDiscountsRoute);
 app.use(BASE_API_PATH, userDiscountQrsRoute);
 app.use(BASE_API_PATH, businessRoute);
 app.use(BASE_API_PATH, checkAccountRoute);
+app.use(BASE_API_PATH, checkAdminAppRoute);
 //app.use(BASE_API_PATH, dashboardRoute);
 
 

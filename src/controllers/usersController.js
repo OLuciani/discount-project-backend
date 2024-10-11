@@ -304,12 +304,6 @@ const controller = {
       const roleUser = process.env.ROLE_USER;
 
       const newUser = new User({
-        /* name,
-        lastName,
-        businessName,
-        businessId,
-        businessType,
-        phone, */
         email: normalizedEmail,
         originalEmail: email,
         password: hashedPassword,
@@ -430,13 +424,6 @@ const controller = {
           .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
       }
 
-      //este token funciona perfecto
-      /* const token = jwt.sign(
-        { userId: user._id, email: user.email, role: user.role },
-        process.env.AUTH_SECRET,
-        { expiresIn: "15m" }
-      ); */
-
       //este token lo estoy probando en lugar del anterior
       const token = jwt.sign(
         { userId: user._id, businessId: user.businessId, role: user.role },
@@ -445,14 +432,6 @@ const controller = {
       );
 
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-
-      //Esta es la que utilicé con el frontend web desplegado en vercel y funcionaba bien
-      /* res.cookie('token', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'None',
-        maxAge: 15 * 60 * 1000, // 15 minutos
-      }); */
 
       //Configuación que utilizo para desarrollo
       /* res.cookie("token", token, {
@@ -491,49 +470,6 @@ const controller = {
       });
     }
   },
-  //Este user_profile anda perfecto
-  /* user_profile: async (req, res) => {
-    const { userId } = req.user; // Extrae el userId del objeto req.user
-
-    try {
-      const user = await User.findById(userId).select('-password -userId -businessId'); // Busca y trae datos el usuario en la base de datos excluyendo password, userId y businessId.
-      if (!user) {
-        return res.status(404).json({ message: "Usuario no encontrado" });
-      }
-  
-      res.json({ user }); // Devuelve los datos del usuario
-    } catch (err) {
-      res.status(500).json({ message: "Error al obtener los datos del usuario" });
-    }
-  }, */
-  /* user_profile: async (req, res) => {
-    const { userId } = req.user; // Extrae el userId del objeto req.user
-
-    try {
-      const user = await User.findById(userId).select('-password -userId -businessId'); // Busca y trae datos el usuario en la base de datos excluyendo password, userId y businessId.
-      if (!user) {
-        return res.status(404).json({ message: "Usuario no encontrado" });
-      }
-
-      const roleAdminWeb = process.env.ROLE_ADMINWEB;
-      const roleUser = process.env.ROLE_USER;
-      const roleAdminQr = process.env.ROLE_ADMINQR;
-
-      const roleType = "";
-      
-      if(user.role === roleAdminWeb) {
-        roleType = "adminWeb";
-      } else if (user.role === roleUser) {
-        roleType = "user";
-      } else if (user.role === roleAdminQr) {
-        roleType = "adminQr";
-      }
-  
-      res.json({ userRole: roleType, userName: user.name, businessName: user.businessName, businessType: user.businessType }); // Devuelve los datos del usuario
-    } catch (err) {
-      res.status(500).json({ message: "Error al obtener los datos del usuario" });
-    }
-  }, */
   user_profile: async (req, res) => {
     const { userId } = req.user; // Extrae el userId del objeto req.user
     try {
@@ -592,10 +528,6 @@ const controller = {
   },
   protected_route: async (req, res) => {
     try {
-      /* if (!req.user) {
-            return res.status(401).json({ success: false, message: 'Token inválido' });
-        } */
-      //const user_id = req.params._id;
       const { userId } = req.user; // Extrae el userId del objeto req.user
       //const user = await User.findById(user_id);
       const user = await User.findById(userId);
@@ -761,49 +693,6 @@ const controller = {
       res.status(500).json({ message: "Error interno del servidor" });
     }
   },
-  /* pending_users: async (req, res) => {
-    try {
-      const pendingUsers = await User.find({ status: "pending" });
-      res.json(pendingUsers);
-    } catch (error) {
-      console.error("Error al obtener usuarios pendientes:", error);
-      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
-    }
-  }, */
-  /* pending_users: async (req, res) => {
-    try {
-      const users = await User.find({ status: "pending" });
-
-      const pendingUsers= users.map((user) => {
-        // Cargar las variables de entorno para los roles
-        const roleAdminWeb = process.env.ROLE_ADMINWEB;
-        const roleUser = process.env.ROLE_USER;
-        const roleAdminQr = process.env.ROLE_ADMINQR;
-
-        // Definir la variable roleType
-        let roleType = "";
-
-        // Condicional para determinar el tipo de rol
-        if (user.role === roleAdminWeb) {
-          roleType = "adminWeb";
-        } else if (user.role === roleUser) {
-          roleType = "user";
-        } else if (user.role === roleAdminQr) {
-          roleType = "adminQr";
-        } else {
-          // En caso de que el rol no coincida con ninguno de los roles conocidos
-          roleType = "unknown";
-        }
-
-        user.role = roleType;
-      });
-
-      res.json(pendingUsers);
-    } catch (error) {
-      console.error("Error al obtener usuarios pendientes:", error);
-      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
-    }
-  }, */
   pending_users: async (req, res) => {
     try {
       // Buscar usuarios con estado "pending"
