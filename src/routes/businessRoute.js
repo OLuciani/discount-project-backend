@@ -28,4 +28,6 @@ router.patch("/update_business", authenticateToken, upload, processFiles, busine
 
 router.get("/pending_business/:_id", authenticateToken, authorizeRole([roleAdminApp]), businessController.pending_business);
 
+router.get("/active_business/:_id", authenticateToken, authorizeRole([roleAdminApp]), businessController.active_business);
+
 export default router;

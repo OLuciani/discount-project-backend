@@ -146,31 +146,6 @@ const sendMobileMongoEmail = async (email, token) => {
 }; */
 
 const controller = {
-  user_detail: (req, res) => {
-    /* const businessId = req.params._id; // Obtengo el ID del negocio desde los parámetros de la solicitud */
-    const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
-    User.findById(userId) // Busco el usuario por su ID
-      .then((oneUser) => {
-        if (!oneUser) {
-          // Manejo el caso si el usuario no se encuentra
-          return res.status(404).json({ message: "Usuario no encontrado" });
-        }
-        res.json(oneUser); // Envío los datos del Usuario encontrado como respuesta
-      })
-      .catch((error) => {
-        console.error("Error al buscar el usuario: ", error);
-        res.status(500).json({ error: "Error al buscar el usuario" });
-      });
-  },
-  users_list: async (req, res) => {
-    try {
-      const allUsers = await User.find();
-      res.json(allUsers);
-    } catch (error) {
-      console.error("Error al buscar usuarios:", error);
-      res.status(500).json({ error: "Error al buscar usuarios" });
-    }
-  },
   confirm_email: async (req, res) => {
     //req.params.email.toLowerCase();
     const { email } = req.body;
@@ -324,6 +299,75 @@ const controller = {
       res.status(500).json({ error: "Error en el registro" });
     }
   },
+  user_detail: (req, res) => {
+    const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
+    User.findById(userId) // Busco el usuario por su ID
+      .then((oneUser) => {
+        if (!oneUser) {
+          // Manejo el caso si el usuario no se encuentra
+          return res.status(404).json({ message: "Usuario no encontrado" });
+        }
+        res.json(oneUser); // Envío los datos del Usuario encontrado como respuesta
+      })
+      .catch((error) => {
+        console.error("Error al buscar el usuario: ", error);
+        res.status(500).json({ error: "Error al buscar el usuario" });
+      });
+  },
+  users_list: async (req, res) => {
+    try {
+      const allUsers = await User.find();
+      res.json(allUsers);
+    } catch (error) {
+      console.error("Error al buscar usuarios:", error);
+      res.status(500).json({ error: "Error al buscar usuarios" });
+    }
+  },
+  active_businessesAdmins_usersList: async (req, res) => {
+    try {
+      const roleAdminWeb = process.env.ROLE_ADMINWEB; 
+
+      // Buscar usuarios con estado "active"
+      const users = await User.find({ status: "active", role: roleAdminWeb });
+
+      // Iterar sobre los usuarios y ajustar el rol
+      const activeUsers = users.map((user) => {
+        // Cargar las variables de entorno para los roles
+        const roleAdminWeb = process.env.ROLE_ADMINWEB;
+        const roleUser = process.env.ROLE_USER;
+        const roleAdminQr = process.env.ROLE_ADMINQR;
+
+        // Definir la variable roleType
+        let roleType = "";
+
+        // Condicional para determinar el tipo de rol
+        if (user.role === roleAdminWeb) {
+          roleType = "adminWeb";
+        } else if (user.role === roleUser) {
+          roleType = "user";
+        } else if (user.role === roleAdminQr) {
+          roleType = "adminQr";
+        } else {
+          // En caso de que el rol no coincida con ninguno de los roles conocidos
+          roleType = "unknown";
+        }
+
+        // Retornar el usuario con el rol actualizado
+        return {
+          ...user._doc, // Usar el campo _doc de Mongoose para retornar los datos del usuario
+          role: roleType,
+        };
+      });
+
+      // Enviar la respuesta con la lista de usuarios activos y sus roles ajustados
+      res.json(activeUsers);
+      console.log("Valor de activeUsers con role: ", activeUsers);
+    } catch (error) {
+      // Manejo de errores
+      console.error("Error al obtener usuarios pendientes:", error);
+      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
+    }
+  },
   //user_update: async (req, res) => {
   businessId_and_businessType_update: async (req, res) => {
     const userId = req.params._id;
@@ -454,13 +498,6 @@ const controller = {
         message: "Inicio de sesión exitoso",
         success: true,
         token, //Lo agregué para probar la aplicacion movil
-        //role: user.role,
-        //_id: user._id,
-        //name: user.name,
-        // businessName: user.businessName,
-        //businessId: user.businessId,
-        //businessType: user.businessType,
-        //originalEmail: user.originalEmail, // Devolver el email original si es necesario
       });
     } catch (error) {
       console.error("Error al buscar el usuario:", error);
@@ -747,8 +784,8 @@ const controller = {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
 
-      // Actualizar el estado del usuario a 'aprobado'
-      user.status = "approved"; // Asume que hay un campo 'status' que almacena el estado del usuario
+      // Actualizar el estado del usuario a 'activo'
+      user.status = "active"; // Asume que hay un campo 'status' que almacena el estado del usuario
 
       const roleAdminWeb = process.env.ROLE_ADMINWEB;
       // Si es necesario, también puedes actualizar el rol del usuario
@@ -764,6 +801,134 @@ const controller = {
       return res.status(500).json({ message: "Error al aprobar el usuario" });
     }
   },
+  send_user_notification: async (req, res) => {
+    const { userId, message } = req.body;
+
+    try {
+        // Busco al usuario por su ID
+        const user = await User.findById(userId);
+
+        // Verifico que el usuario exista y que su estado sea "pending"
+        if (!user/*  || user.status !== 'pending' */) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado o no tiene estado pendiente.' });
+        }
+
+        // Creo la nueva notificación
+        const newNotification = {
+            message,
+            timestamp: new Date(),
+            read: false
+        };
+
+        // Agrego la notificación al array de notificaciones del usuario
+        user.notifications.push(newNotification);
+
+        // Guardo los cambios en el usuario
+        await user.save();
+
+        res.status(200).json({ success: true, message: 'Notificación enviada y guardada en el usuario.' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al enviar notificación.' });
+    }
+  },
+  user_pending_notifications: async (req, res) => {
+    const { userId } = req.user; // Extrae el userId del objeto req.user
+
+    try {
+        // Busco al usuario por su ID
+        const user = await User.findById(userId, 'notifications'); // Solo seleccionamos la propiedad notifications
+
+        // Verifico que el usuario exista
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+        }
+
+        // Devuelvo las notificaciones del usuario
+        res.status(200).json({ success: true, notifications: user.notifications });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error al obtener las notificaciones.' });
+    }
+  },
+  /* mark_user_notification_as_read: async (req, res) => {
+    const { notificationId } = req.body; // ID de la notificación a marcar como leída
+    const { userId } = req.user; // Asegúrate de que el userId esté correctamente disponible
+
+    try {
+        // Busco al usuario por su ID
+        const user = await User.findById(userId);
+
+        // Verifico que el usuario exista
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+        }
+
+        // Busco la notificación
+        const notification = user.notifications.id(notificationId);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: 'Notificación no encontrada.' });
+        }
+
+        // Marcar la notificación como leída
+        notification.read = true;
+
+        // Guardo los cambios en el usuario
+        await user.save().catch(err => {
+            // Si hay un error al guardar, lo capturo aquí
+            console.error('Error al guardar el usuario:', err);
+            return res.status(500).json({ success: false, message: 'Error al marcar la notificación como leída.' });
+        });
+
+        // Si no hubo errores, envío la respuesta de éxito
+        res.status(200).json({ success: true, message: 'Notificación marcada como leída.' });
+
+    } catch (error) {
+        console.error('Error al marcar la notificación como leída:', error);
+        res.status(500).json({ success: false, message: 'Error al marcar la notificación como leída.' });
+    }
+} */
+mark_user_notification_as_read: async (req, res) => {
+  const { notificationId } = req.body; // ID de la notificación (opcional)
+  const { userId } = req.user; // ID del usuario, asegurado por la autenticación
+
+  try {
+      // Busco al usuario por su ID
+      const user = await User.findById(userId);
+
+      // Verifico que el usuario exista
+      if (!user) {
+          return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
+      }
+
+      if (notificationId) {
+          // Si se proporciona un notificationId, marcar solo esa notificación como leída
+          const notification = user.notifications.id(notificationId);
+          if (!notification) {
+              return res.status(404).json({ success: false, message: 'Notificación no encontrada.' });
+          }
+
+          // Marcar la notificación específica como leída
+          notification.read = true;
+      } else {
+          // Si no se proporciona notificationId, marcar todas las notificaciones como leídas
+          user.notifications.forEach((notification) => {
+              notification.read = true;
+          });
+      }
+
+      // Guardo los cambios en el usuario
+      await user.save().catch(err => {
+          console.error('Error al guardar el usuario:', err);
+          return res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
+      });
+
+      // Respuesta exitosa
+      res.status(200).json({ success: true, message: 'Notificaciones marcadas como leídas.' });
+
+  } catch (error) {
+      console.error('Error al marcar las notificaciones como leídas:', error);
+      res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
+  }
+}
 };
 
 export default controller;
