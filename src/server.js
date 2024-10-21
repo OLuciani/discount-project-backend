@@ -68,9 +68,9 @@ app.get('/set-cookie', (req, res) => {
 
 console.log('Vistas:', path.join(__dirname, '/views'));
 
-const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
+//const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
 
-// Función para conectar a la base de datos
+/* // Función para conectar a la base de datos
 async function connectToDatabase() {
   try {
     await mongoose.connect(URI_MONGO_DB);
@@ -78,7 +78,39 @@ async function connectToDatabase() {
   } catch (error) {
     console.error("Error de conexión a la Base de Datos MongoDB:", error);
   }
+} */
+
+async function connectToDatabase() {
+  try {
+    const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
+    await mongoose.connect(URI_MONGO_DB, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000, // 30 segundos de timeout
+      socketTimeoutMS: 45000,          // 45 segundos de timeout en los sockets
+    });
+    console.log("Conectado a la Base de Datos MongoDB");
+  } catch (error) {
+    console.error("Error de conexión a la Base de Datos MongoDB:", error);
+  }
 }
+
+
+/* // Función para conectar a la base de datos
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(URI_MONGO_DB, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 30000, // 30 segundos de timeout
+      socketTimeoutMS: 45000,          // 45 segundos de timeout en los sockets
+    });
+    console.log("Conectado a la Base de Datos MongoDB");
+  } catch (error) {
+    console.error("Error de conexión a la Base de Datos MongoDB:", error);
+  }
+} */
+
 
 // Llamada a la función de conexión
 connectToDatabase();
