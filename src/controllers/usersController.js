@@ -71,6 +71,35 @@ const sendConfirmEmail = async (email, token) => {
   }
 };
 
+const sendInvitationQrScannerUserEmail = async (email, token, businessId, businessName) => {
+  try {
+    //const resetLink = `http://localhost:8081/createUserQrScanner?token=${token}&email=${email}&businessId=${businessId}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/createUserQrScanner?token=${token}&email=${email}&bussinesId=${businessId}`;
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: email,
+      subject: "Invitación para acceder al sistema de escaneo",
+      html: `
+        <h5>Has sido invitado a unirte al sistema de escaneo de descuentos de ${businessName}.</h5>
+        <p>Haz clic en el siguiente enlace para crear tu cuenta en la aplicación:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(
+      "Correo electrónico para crear usuario con acceso a Scanner enviado con éxito"
+    );
+  } catch (error) {
+    console.error(
+      "Error al enviar el correo electrónico para crear usuario con acceso a Scanner:",
+      error
+    );
+    throw error;
+  }
+};
+
 // Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
 const sendMongoEmail = async (email, token) => {
   try {
@@ -470,7 +499,7 @@ const controller = {
 
       //este token lo estoy probando en lugar del anterior
       const token = jwt.sign(
-        { userId: user._id, businessId: user.businessId, role: user.role },
+        { userId: user._id, businessId: user.businessId, role: user.role, businessName: user.businessName },
         process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
@@ -849,9 +878,9 @@ const controller = {
         res.status(500).json({ success: false, message: 'Error al obtener las notificaciones.' });
     }
   },
-  /* mark_user_notification_as_read: async (req, res) => {
-    const { notificationId } = req.body; // ID de la notificación a marcar como leída
-    const { userId } = req.user; // Asegúrate de que el userId esté correctamente disponible
+  mark_user_notification_as_read: async (req, res) => {
+    const { notificationId } = req.body; // ID de la notificación (opcional)
+    const { userId } = req.user; // ID del usuario, asegurado por la autenticación
 
     try {
         // Busco al usuario por su ID
@@ -862,73 +891,141 @@ const controller = {
             return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
         }
 
-        // Busco la notificación
-        const notification = user.notifications.id(notificationId);
-        if (!notification) {
-            return res.status(404).json({ success: false, message: 'Notificación no encontrada.' });
-        }
+        if (notificationId) {
+            // Si se proporciona un notificationId, marcar solo esa notificación como leída
+            const notification = user.notifications.id(notificationId);
+            if (!notification) {
+                return res.status(404).json({ success: false, message: 'Notificación no encontrada.' });
+            }
 
-        // Marcar la notificación como leída
-        notification.read = true;
+            // Marcar la notificación específica como leída
+            notification.read = true;
+        } else {
+            // Si no se proporciona notificationId, marcar todas las notificaciones como leídas
+            user.notifications.forEach((notification) => {
+                notification.read = true;
+            });
+        }
 
         // Guardo los cambios en el usuario
         await user.save().catch(err => {
-            // Si hay un error al guardar, lo capturo aquí
             console.error('Error al guardar el usuario:', err);
-            return res.status(500).json({ success: false, message: 'Error al marcar la notificación como leída.' });
+            return res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
         });
 
-        // Si no hubo errores, envío la respuesta de éxito
-        res.status(200).json({ success: true, message: 'Notificación marcada como leída.' });
+        // Respuesta exitosa
+        res.status(200).json({ success: true, message: 'Notificaciones marcadas como leídas.' });
 
     } catch (error) {
-        console.error('Error al marcar la notificación como leída:', error);
-        res.status(500).json({ success: false, message: 'Error al marcar la notificación como leída.' });
+        console.error('Error al marcar las notificaciones como leídas:', error);
+        res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
     }
-} */
-mark_user_notification_as_read: async (req, res) => {
-  const { notificationId } = req.body; // ID de la notificación (opcional)
-  const { userId } = req.user; // ID del usuario, asegurado por la autenticación
+  },
+  invitation_email_qr_scanner_user: async (req, res) => {
+    const {
+      email,
+    } = req.body;
 
-  try {
-      // Busco al usuario por su ID
-      const user = await User.findById(userId);
+    const { businessId, businessName } = req.user; 
 
-      // Verifico que el usuario exista
-      if (!user) {
-          return res.status(404).json({ success: false, message: 'Usuario no encontrado.' });
-      }
+    try {
+      const normalizedEmail = email.toLowerCase();
 
-      if (notificationId) {
-          // Si se proporciona un notificationId, marcar solo esa notificación como leída
-          const notification = user.notifications.id(notificationId);
-          if (!notification) {
-              return res.status(404).json({ success: false, message: 'Notificación no encontrada.' });
-          }
-
-          // Marcar la notificación específica como leída
-          notification.read = true;
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        console.log(
+          "El correo electrónico ya está registrado:",
+          normalizedEmail
+        );
+        return res
+          .status(400)
+          .json({ error: "El correo electrónico ya está registrado" });
       } else {
-          // Si no se proporciona notificationId, marcar todas las notificaciones como leídas
-          user.notifications.forEach((notification) => {
-              notification.read = true;
-          });
+        const qrScannerUserEmailToken = jwt.sign(
+          { email: email },
+          process.env.CREATE_USER_QR_SCANNER_SECRET,
+          {
+            expiresIn: "15m",
+          }
+        );
+
+        await sendInvitationQrScannerUserEmail(email, qrScannerUserEmailToken, businessId, businessName);
+        console.log(
+          "Correo electrónico para crear usuario con acceso a Scanner enviado a:",
+          email
+        );
+
+        res.json({
+          //exists: !!user,
+          success: true,
+          message:
+            "Correo electrónico con enlace para crear usuario con acceso a Scanner enviado correctamente",
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error al procesar la solicitud de chequeo de email para crear cuenta:",
+        error
+      );
+      res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+  },
+    create_user_qr_scanner: async (req, res) => {
+      const { name, lastName, email, password, businessId} = req.body;
+
+      // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
+      if (req.user.email !== email) {
+        return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
       }
 
-      // Guardo los cambios en el usuario
-      await user.save().catch(err => {
-          console.error('Error al guardar el usuario:', err);
-          return res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
-      });
+      console.log("Valor de email: ", email);
+      console.log("Valor de businessId: ", businessId);
 
-      // Respuesta exitosa
-      res.status(200).json({ success: true, message: 'Notificaciones marcadas como leídas.' });
-
-  } catch (error) {
-      console.error('Error al marcar las notificaciones como leídas:', error);
-      res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
-  }
-}
+      try {
+        const normalizedEmail = email.toLowerCase();
+  
+        console.log("Datos recibidos para registro del userQrScanner:", req.body);
+  
+        let existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+          console.log(
+            "El correo electrónico ya está registrado:",
+            normalizedEmail
+          );
+          return res
+            .status(400)
+            .json({ error: "El correo electrónico ya está registrado" });
+        }
+  
+        const hashedPassword = await bcrypt.hash(password, 10);
+  
+        const roleUserQrScanner = process.env.ROLE_ADMINQR;
+  
+        const newUser = new User({
+          name,
+          lastName,
+          businessId,
+          email: normalizedEmail,
+          originalEmail: email,
+          password: hashedPassword,
+          role: roleUserQrScanner,
+          status: "active",
+        });
+  
+        await newUser.save();
+        console.log("Nuevo usuario con acceso a scanner en aplicación movil registrado:", newUser);
+  
+        res.json({
+          message: "Registro exitoso como usuario con acceso a scanner en aplicación movil.",
+          _id: newUser._id,
+          name: newUser.name,
+          lastName: newUser.lastName,
+        });
+      } catch (error) {
+        console.error("Error en el registro de usuario con acceso a scanner en aplicación movil:", error);
+        res.status(500).json({ error: "Error en el registro de usuario con acceso a scanner en aplicación movil" });
+      }
+    }
 };
 
 export default controller;

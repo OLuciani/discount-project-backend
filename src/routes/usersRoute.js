@@ -6,18 +6,29 @@ import authenticateToken from "../middlewares/authenticateToken.js";
 import authenticateResetToken from "../middlewares/authenticateResetToken.js";
 import authenticateConfirmEmailToken from "../middlewares/authenticateConfirmEmailToken.js";
 import { authorizeRole } from "../middlewares/authorizeRole.js";
+import authenticateCreateUserQrScaner from "../middlewares/authenticateCreateUserQrScanner.js";
 
 
 import usersController from "../controllers/usersController.js";
 
 const roleAdminApp = process.env.ROLE_ADMINAPP;
+console.log("Valor de roleAdminApp: ", roleAdminApp);
 const roleUser = process.env.ROLE_USER;
+console.log("Valor de roleUser: ", roleUser);
+const roleAdminWeb = process.env.ROLE_ADMINWEB;
+console.log("Valor de roleAdminWeb: ", roleAdminWeb);
 
 
 
 router.post("/confirm_email", usersController.confirm_email);
-router.post("/user_register", authenticateConfirmEmailToken, usersController.user_register);
-router.post("/user_register_mobile", usersController.user_register_mobile);
+router.post("/user_register", authenticateConfirmEmailToken, usersController.user_register); //Ruta para registrar a un usuario administrador de la cuenta de un negocio que publica en la app.
+
+router.post("/user_register_mobile", usersController.user_register_mobile); // Ruta para registrar a un usuario de la aplicación móvil.
+
+router.post("/invitation_email_qr_scanner_user", authenticateToken, authorizeRole([roleAdminWeb]), usersController.invitation_email_qr_scanner_user); // Ruta p/invitar a un usuario que accede al scanner de qrs de descuentos de un determinado negocio.
+
+router.post("/create_user_qr_scanner", authenticateCreateUserQrScaner,usersController.create_user_qr_scanner);
+
 router.get("/user_detail", authenticateToken, usersController.user_detail);
 router.get("/users_list", usersController.users_list);
 router.get("/active_businessesAdmins_usersList", authenticateToken, authorizeRole([roleAdminApp]), usersController.active_businessesAdmins_usersList);
