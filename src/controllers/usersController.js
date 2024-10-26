@@ -74,7 +74,7 @@ const sendConfirmEmail = async (email, token) => {
 const sendInvitationQrScannerUserEmail = async (email, token, businessId, businessName) => {
   try {
     //const resetLink = `http://localhost:8081/createUserQrScanner?token=${token}&email=${email}&businessId=${businessId}`;
-    const resetLink = `${process.env.FRONTEND_WEB_URL}/createUserQrScanner?token=${token}&email=${email}&bussinesId=${businessId}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/createUserQrScanner?token=${token}&email=${email}&businessId=${businessId}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
