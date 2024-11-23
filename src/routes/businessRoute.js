@@ -8,7 +8,8 @@ import { authorizeRole } from "../middlewares/authorizeRole.js";
 
 const router = express.Router();
 
-const roleAdminApp = process.env.ROLE_ADMINAPP;
+const roleAdminApp = process.env.ROLE_APP_ADMIN;
+const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
 
 
 //router.post("/business_create", upload.single("imageURL"), processImage, uploadDocument.single("pdfBusinessRegistration"), processDocument, businessController.business_create);
@@ -24,7 +25,7 @@ router.get("/business_list", businessController.business_list);
 
 //router.patch("/update_business", authenticateToken, upload.single("imageURL"), processImage, businessController.update_business);
 
-router.patch("/update_business", authenticateToken, upload, processFiles, businessController.update_business);
+router.patch("/update_business", authenticateToken, authorizeRole([roleBusinessDirector]), upload, processFiles, businessController.update_business);
 
 router.get("/pending_business/:_id", authenticateToken, authorizeRole([roleAdminApp]), businessController.pending_business);
 

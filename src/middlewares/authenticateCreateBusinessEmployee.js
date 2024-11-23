@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const authenticateCreateUserQrScaner = (req, res, next) => {
+const authenticateCreateBusinessEmployee = (req, res, next) => {
     const token = req.headers['authorization']?.split(' ')[1];
  // Asumiendo que el token se envía en el encabezado Authorization
     console.log("Token recibido:", token);
@@ -15,8 +15,8 @@ const authenticateCreateUserQrScaner = (req, res, next) => {
       next();
     } catch (err) {
         console.log("Error verificando token:", err); 
-      res.status(400).json({ message: "Token Inválido o expirado" });
+      res.status(400).json({ message: "Token para crear usuario con acceso a Scanner en app movil Inválido o expirado" });
     }
   };
   
-  export default authenticateCreateUserQrScaner;
+  export default authenticateCreateBusinessEmployee;

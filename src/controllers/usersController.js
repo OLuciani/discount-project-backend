@@ -5,6 +5,7 @@ import { auth, sendPasswordResetEmail, admin } from "../../config/firebase.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
+import Business from "../models/Business.model.js";
 
 // Configuración de nodemailer
 const transporter = nodemailer.createTransport({
@@ -71,17 +72,18 @@ const sendConfirmEmail = async (email, token) => {
   }
 };
 
-const sendInvitationQrScannerUserEmail = async (email, token, businessId, businessName) => {
+const sendInvitationBusinessEmployeeUserEmail = async (email, token, businessId, businessName) => {
+  console.log("Valor de businessName en sendInvitationBusinessEmployeeUserEmail: ", businessName);
   try {
-    //const resetLink = `http://localhost:8081/createUserQrScanner?token=${token}&email=${email}&businessId=${businessId}`;
-    const resetLink = `${process.env.FRONTEND_WEB_URL}/createUserQrScanner?token=${token}&email=${email}&businessId=${businessId}`;
+    //const resetLink = `http://localhost:8081/createBusinessEmployeeUser?token=${token}&email=${email}&businessId=${businessId}&businessName=${businessName}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/createBusinessEmployeeUser?token=${token}&email=${email}&businessId=${businessId}&businessName=${businessName}`;
 
     const mailOptions = {
       from: process.env.NODEMAILER_USER,
       to: email,
-      subject: "Invitación para acceder al sistema de escaneo",
+      subject: `Invitación p/crear cuenta asociada al negocio ${businessName}`,
       html: `
-        <h5>Has sido invitado a unirte al sistema de escaneo de descuentos de ${businessName}.</h5>
+        <h5>Has sido invitado a unirte a la cuenta del negocio ${businessName} en la aplicación Comé x menos.</h5>
         <p>Haz clic en el siguiente enlace para crear tu cuenta en la aplicación:</p>
         <p><a href="${resetLink}">${resetLink}</a></p>
       `,
@@ -99,6 +101,37 @@ const sendInvitationQrScannerUserEmail = async (email, token, businessId, busine
     throw error;
   }
 };
+
+
+const sendInvitationExtraBusinessAdminUserEmail = async (email, token, businessId, businessName) => {
+  try {
+    //const resetLink = `http://localhost:8081/createExtraBusinessAdminUser?token=${token}&email=${email}&businessId=${businessId}`;
+    const resetLink = `${process.env.FRONTEND_WEB_URL}/createExtraBusinessAdminUser?token=${token}&email=${email}&businessId=${businessId}`;
+
+    const mailOptions = {
+      from: process.env.NODEMAILER_USER,
+      to: email,
+      subject: "Invitación para crear cuenta como Usuario Administrador",
+      html: `
+        <h5>Has sido invitado a crear cuenta como Usuario administrador de la cuenta del negocio ${businessName}.</h5>
+        <p>Haz clic en el siguiente enlace para crear tu cuenta en la aplicación:</p>
+        <p><a href="${resetLink}">${resetLink}</a></p>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(
+      "Correo electrónico para crear usuario administrador de cuenta de negocio enviado con éxito"
+    );
+  } catch (error) {
+    console.error(
+      "Error al enviar el correo electrónico para crear usuario administrador de cuenta de negocio:",
+      error
+    );
+    throw error;
+  }
+};
+
 
 // Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
 const sendMongoEmail = async (email, token) => {
@@ -229,9 +262,7 @@ const controller = {
       phone,
       email,
       password,
-      businessName,
       businessId,
-      businessType,
     } = req.body;
 
     try {
@@ -252,19 +283,17 @@ const controller = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const roleUser = process.env.ROLE_USER;
+      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR;
 
       const newUser = new User({
         name,
         lastName,
-        businessName,
         businessId,
-        businessType,
         phone,
         email: normalizedEmail,
         originalEmail: email,
         password: hashedPassword,
-        role: roleUser,
+        role: roleBusinessDirector,
       });
 
       await newUser.save();
@@ -305,13 +334,13 @@ const controller = {
 
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const roleUser = process.env.ROLE_USER;
+      const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
 
       const newUser = new User({
         email: normalizedEmail,
         originalEmail: email,
         password: hashedPassword,
-        role: roleUser,
+        role: roleMobileCustomer,
       });
 
       await newUser.save();
@@ -352,52 +381,46 @@ const controller = {
       res.status(500).json({ error: "Error al buscar usuarios" });
     }
   },
-  active_businessesAdmins_usersList: async (req, res) => {
+  all_users_list: async (req, res) => {
     try {
-      const roleAdminWeb = process.env.ROLE_ADMINWEB; 
-
-      // Buscar usuarios con estado "active"
-      const users = await User.find({ status: "active", role: roleAdminWeb });
-
-      // Iterar sobre los usuarios y ajustar el rol
+      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
+      const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+      const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+      const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
+  
+      // Buscar usuarios con estado "active" y roles relevantes
+      const users = await User.find({
+        //status: "active",
+        role: { $in: [roleBusinessDirector, roleBusinessManager, roleBusinessEmployee, roleMobileCustomer] }
+      });
+  
+      // Formatear la respuesta de usuarios con el rol adecuado
       const activeUsers = users.map((user) => {
-        // Cargar las variables de entorno para los roles
-        const roleAdminWeb = process.env.ROLE_ADMINWEB;
-        const roleUser = process.env.ROLE_USER;
-        const roleAdminQr = process.env.ROLE_ADMINQR;
-
-        // Definir la variable roleType
         let roleType = "";
-
-        // Condicional para determinar el tipo de rol
-        if (user.role === roleAdminWeb) {
-          roleType = "adminWeb";
-        } else if (user.role === roleUser) {
-          roleType = "user";
-        } else if (user.role === roleAdminQr) {
-          roleType = "adminQr";
-        } else {
-          // En caso de que el rol no coincida con ninguno de los roles conocidos
-          roleType = "unknown";
+  
+        if (user.role === roleBusinessDirector) {
+          roleType = "businessDirector";
+        } else if (user.role === roleBusinessManager) {
+          roleType = "businessManager";
+        } else if (user.role === roleBusinessEmployee) {
+          roleType = "businessEmployee";
+        } else if (user.role === roleMobileCustomer) {
+          roleType = "mobileCustomer";
         }
-
-        // Retornar el usuario con el rol actualizado
+  
         return {
-          ...user._doc, // Usar el campo _doc de Mongoose para retornar los datos del usuario
+          ...user._doc,  // _doc contiene los datos del usuario
           role: roleType,
         };
       });
-
-      // Enviar la respuesta con la lista de usuarios activos y sus roles ajustados
+  
+      // Enviar los usuarios activos al frontend
       res.json(activeUsers);
-      console.log("Valor de activeUsers con role: ", activeUsers);
     } catch (error) {
-      // Manejo de errores
-      console.error("Error al obtener usuarios pendientes:", error);
-      res.status(500).json({ message: "Error al obtener usuarios pendientes" });
+      console.error("Error al obtener usuarios activos:", error);
+      res.status(500).json({ message: "Error al obtener usuarios activos" });
     }
   },
-  //user_update: async (req, res) => {
   businessId_and_businessType_update: async (req, res) => {
     const userId = req.params._id;
     const { businessId, businessType, pdfBusinessRegistration } = req.body;
@@ -432,9 +455,13 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
   },
+  //Este andaba barbaro 
   user_update: async (req, res) => {
     const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
-    const { name, lastName, phone, businessType, businessName } = req.body;
+ 
+    console.log("Valor de userId en user_update: ", userId);
+
+    const { name, lastName, phone/* , businessType, businessName */ } = req.body;
 
     try {
       console.log("Datos recibidos para actualizar usuario:", req.body);
@@ -443,8 +470,8 @@ const controller = {
       if (name) updateData.name = name;
       if (lastName) updateData.lastName = lastName;
       if (phone) updateData.phone = phone;
-      if (businessType) updateData.businessType = businessType;
-      if (businessName) updateData.businessName = businessName;
+      //if (businessType) updateData.businessType = businessType;
+      //if (businessName) updateData.businessName = businessName;
 
       const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
         new: true,
@@ -462,6 +489,7 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
   },
+  //Este login anda perfecto con businessName
   login: async (req, res) => {
     const { email, password } = req.body;
 
@@ -489,7 +517,7 @@ const controller = {
           .json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
       }
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      const isPasswordValid = bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
         return res
@@ -499,7 +527,7 @@ const controller = {
 
       //este token lo estoy probando en lugar del anterior
       const token = jwt.sign(
-        { userId: user._id, businessId: user.businessId, role: user.role, businessName: user.businessName },
+        { userId: user._id, businessId: user.businessId, role: user.role, businessName: user.businessName, accountCreator: user.accountCreator },
         process.env.AUTH_SECRET,
         { expiresIn: "15m" }
       );
@@ -526,7 +554,7 @@ const controller = {
       res.json({
         message: "Inicio de sesión exitoso",
         success: true,
-        token, //Lo agregué para probar la aplicacion movil
+        token, //Lo agregué para probar la aplicacion movil(ver si hay que sacarlo)
       });
     } catch (error) {
       console.error("Error al buscar el usuario:", error);
@@ -537,12 +565,13 @@ const controller = {
     }
   },
   user_profile: async (req, res) => {
-    const { userId } = req.user; // Extrae el userId del objeto req.user
+    const { userId, businessId } = req.user; // Extrae el userId del objeto req.user
     try {
       // Busca y trae datos del usuario en la base de datos excluyendo password, userId y businessId.
-      const user = await User.findById(userId).select(
-        "-password -userId -businessId"
-      );
+      const user = await User.findById(userId).select("-password -userId -businessId");
+
+      //const business = await Business.findById(businessId);
+
       if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
       }
@@ -555,35 +584,47 @@ const controller = {
       }
 
       // Cargar las variables de entorno para los roles
-      const roleAdminApp = process.env.ROLE_ADMINAPP;
-      const roleAdminWeb = process.env.ROLE_ADMINWEB;
-      const roleUser = process.env.ROLE_USER;
-      const roleAdminQr = process.env.ROLE_ADMINQR;
+      const roleAppAdmin = process.env.ROLE_APP_ADMIN;
+      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
+      const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+      const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+      const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
 
       // Definir la variable roleType
       let roleType = "";
 
       // Condicional para determinar el tipo de rol
-      if (user.role === roleAdminApp) {
-        roleType = "adminApp";
-      } else if (user.role === roleAdminWeb) {
-        roleType = "adminWeb";
-      } else if (user.role === roleUser) {
-        roleType = "user";
-      } else if (user.role === roleAdminQr) {
-        roleType = "adminQr";
-      } else {
-        // En caso de que el rol no coincida con ninguno de los roles conocidos
-        roleType = "unknown";
+      if (user.role === roleAppAdmin) {
+        roleType = "appAdmin";
+      } else if (user.role === roleBusinessDirector) {
+        roleType = "businessDirector";
+      } else if (user.role === roleBusinessManager) {
+        roleType = "businessManager";
+      } else if (user.role === roleBusinessEmployee) {
+        roleType = "businessEmployee";
+      } else if (user.role === roleMobileCustomer) {
+        roleType = "mobileCustomer";
       }
+  
 
-      // Devuelve los datos del usuario
-      res.json({
-        userRole: roleType,
-        userName: user.name,
-        businessName: user.businessName,
-        businessType: user.businessType,
-      });
+      // Devuelve los datos del usuario. Si es un usurario con rol relacionado a un negocio al tener un businessId devuelve businesName y businessType, en cambio si el usuario tiene el rol roleAppAdmin al no poseer la propiedad businessId y no estar relacionado con un negocio no se le envían ni businessName ni businessType.
+      if(businessId) {
+        const business = await Business.findById(businessId);
+
+        res.json({
+          userRole: roleType,
+          userName: user.name,
+          businessName: business.businessName,
+          businessType: business.businessType,
+          userStatus: user.status
+        });
+      } else {
+        res.json({
+          userRole: roleType,
+          userName: user.name,
+          userStatus: user.status
+        });
+      }
     } catch (err) {
       // Registro del error en la consola para depuración
       console.error("Error al obtener los datos del usuario:", err);
@@ -761,34 +802,35 @@ const controller = {
   },
   pending_users: async (req, res) => {
     try {
-      // Buscar usuarios con estado "pending"
-      const users = await User.find({ status: "pending" });
+      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR;
+      // Buscar usuarios con estado "pending" y con rol ROLE_BUSINESS_DIRECTOR
+      const users = await User.find({ status: "pending", role: roleBusinessDirector });
 
       // Iterar sobre los usuarios y ajustar el rol
       const pendingUsers = users.map((user) => {
-        // Cargar las variables de entorno para los roles
-        const roleAdminWeb = process.env.ROLE_ADMINWEB;
-        const roleUser = process.env.ROLE_USER;
-        const roleAdminQr = process.env.ROLE_ADMINQR;
-
-        // Definir la variable roleType
         let roleType = "";
 
-        // Condicional para determinar el tipo de rol
-        if (user.role === roleAdminWeb) {
-          roleType = "adminWeb";
-        } else if (user.role === roleUser) {
-          roleType = "user";
-        } else if (user.role === roleAdminQr) {
-          roleType = "adminQr";
-        } else {
-          // En caso de que el rol no coincida con ninguno de los roles conocidos
-          roleType = "unknown";
+        // Cargar las variables de entorno para los roles
+        const roleAppAdmin = process.env.ROLE_APP_ADMIN;
+        const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
+        const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+        const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+        const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
+  
+        if (user.role === roleAppAdmin) {
+          roleType = "appAdmin";
+        } else if (user.role === roleBusinessDirector) {
+          roleType = "businessDirector";
+        } else if (user.role === roleBusinessManager) {
+          roleType = "businessManager";
+        } else if (user.role === roleBusinessEmployee) {
+          roleType = "businessEmployee";
+        } else if (user.role === roleMobileCustomer) {
+          roleType = "mobileCustomer";
         }
-
-        // Retornar el usuario con el rol actualizado
+  
         return {
-          ...user._doc, // Usar el campo _doc de Mongoose para retornar los datos del usuario
+          ...user._doc,  // _doc contiene los datos del usuario
           role: roleType,
         };
       });
@@ -815,10 +857,6 @@ const controller = {
 
       // Actualizar el estado del usuario a 'activo'
       user.status = "active"; // Asume que hay un campo 'status' que almacena el estado del usuario
-
-      const roleAdminWeb = process.env.ROLE_ADMINWEB;
-      // Si es necesario, también puedes actualizar el rol del usuario
-      user.role = roleAdminWeb; // Cambia el rol según lo que necesites
 
       // Guardar los cambios
       await user.save();
@@ -921,7 +959,7 @@ const controller = {
         res.status(500).json({ success: false, message: 'Error al marcar las notificaciones como leídas.' });
     }
   },
-  invitation_email_qr_scanner_user: async (req, res) => {
+  invitation_business_employee_user: async (req, res) => {
     const {
       email,
     } = req.body;
@@ -945,11 +983,11 @@ const controller = {
           { email: email },
           process.env.CREATE_USER_QR_SCANNER_SECRET,
           {
-            expiresIn: "15m",
+            expiresIn: "60m",
           }
         );
 
-        await sendInvitationQrScannerUserEmail(email, qrScannerUserEmailToken, businessId, businessName);
+        await sendInvitationBusinessEmployeeUserEmail(email, qrScannerUserEmailToken, businessId, businessName);
         console.log(
           "Correo electrónico para crear usuario con acceso a Scanner enviado a:",
           email
@@ -970,21 +1008,131 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-    create_user_qr_scanner: async (req, res) => {
-      const { name, lastName, email, password, businessId} = req.body;
+  create_business_employee_user: async (req, res) => {
+    const { name, lastName, email, phone, password, businessId} = req.body;
+
+    // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
+    if (req.user.email !== email) {
+      return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
+    }
+
+    console.log("Valor de email: ", email);
+    console.log("Valor de businessId: ", businessId);
+
+    try {
+      const normalizedEmail = email.toLowerCase();
+
+      console.log("Datos recibidos para registro del userQrScanner:", req.body);
+
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        console.log(
+          "El correo electrónico ya está registrado:",
+          normalizedEmail
+        );
+        return res
+          .status(400)
+          .json({ error: "El correo electrónico ya está registrado" });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+
+      const newUser = new User({
+        name,
+        lastName,
+        businessId,
+        email: normalizedEmail,
+        originalEmail: email,
+        phone: phone,
+        password: hashedPassword,
+        role: roleBusinessEmployee,
+        status: "active",
+      });
+
+      await newUser.save();
+      console.log("Nuevo usuario con acceso a scanner en aplicación movil registrado:", newUser);
+
+      res.json({
+        message: "Registro exitoso como usuario con acceso a scanner en aplicación movil.",
+        _id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+      });
+    } catch (error) {
+      console.error("Error en el registro de usuario con acceso a scanner en aplicación movil:", error);
+      res.status(500).json({ error: "Error en el registro de usuario con acceso a scanner en aplicación movil" });
+    }
+  },
+  invitation_extra_business_admin_user: async (req, res) => {
+    const {
+      email,
+    } = req.body;
+
+    const { businessId, businessName } = req.user; 
+
+    try {
+      const normalizedEmail = email.toLowerCase();
+
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        console.log(
+          "El correo electrónico ya está registrado:",
+          normalizedEmail
+        );
+        return res
+          .status(400)
+          .json({ error: "El correo electrónico ya está registrado" });
+      } else {
+        const qrExtraBusinessAdminUserEmailToken = jwt.sign(
+          { email: email },
+          process.env.CREATE_EXTRA_BUSINESS_ADMIN_USER_SECRET,
+          {
+            expiresIn: "60m",
+          }
+        );
+
+        await sendInvitationExtraBusinessAdminUserEmail(email, qrExtraBusinessAdminUserEmailToken, businessId, businessName);
+        console.log(
+          "Correo electrónico para crear usuario con acceso a Scanner enviado a:",
+          email
+        );
+
+        res.json({
+          //exists: !!user,
+          success: true,
+          message:
+            "Correo electrónico con enlace para crear usuario extra como administrador de la cuenta de negocio enviado correctamente",
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Error al procesar la solicitud de chequeo de email para crear cuenta de usuario extra como administrador de la cuenta de negocio :",
+        error
+      );
+      res.status(500).json({ success: false, message: "Error en el servidor" });
+    }
+  },
+  create_extra_business_admin_user: async (req, res) => {
+    const { name, lastName, email, phone, password, businessId} = req.body;
+
+    const asociateBusiness = await Business.findById(businessId) // Busco el negocio por su ID
+      
+    if (asociateBusiness) {
 
       // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
       if (req.user.email !== email) {
         return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
       }
-
+  
       console.log("Valor de email: ", email);
       console.log("Valor de businessId: ", businessId);
-
+  
       try {
         const normalizedEmail = email.toLowerCase();
   
-        console.log("Datos recibidos para registro del userQrScanner:", req.body);
+        console.log("Datos recibidos para registro del usuario administrador de cuenta de negocio extra:", req.body);
   
         let existingUser = await User.findOne({ email: normalizedEmail });
         if (existingUser) {
@@ -999,33 +1147,212 @@ const controller = {
   
         const hashedPassword = await bcrypt.hash(password, 10);
   
-        const roleUserQrScanner = process.env.ROLE_ADMINQR;
+        const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
   
         const newUser = new User({
           name,
           lastName,
-          businessId,
           email: normalizedEmail,
           originalEmail: email,
+          phone: phone,
           password: hashedPassword,
-          role: roleUserQrScanner,
+          businessId,
+          //businessName: asociateBusiness.businessName,
+          //businessType: asociateBusiness.businessType,
+          role: roleBusinessManager,
           status: "active",
         });
   
         await newUser.save();
-        console.log("Nuevo usuario con acceso a scanner en aplicación movil registrado:", newUser);
+        console.log("Nuevo usuario administrador de cuenta de negocio extra registrado exitosamente:", newUser);
   
         res.json({
-          message: "Registro exitoso como usuario con acceso a scanner en aplicación movil.",
+          message: "Registro exitoso como usuario administrador de cuenta de negocio extra.",
           _id: newUser._id,
           name: newUser.name,
           lastName: newUser.lastName,
         });
       } catch (error) {
-        console.error("Error en el registro de usuario con acceso a scanner en aplicación movil:", error);
-        res.status(500).json({ error: "Error en el registro de usuario con acceso a scanner en aplicación movil" });
+        console.error("Error en el registro de usuario administrador de cuenta de negocio extra:", error);
+        res.status(500).json({ error: "Error en el registro de usuario administrador de cuenta de negocio extra" });
       }
     }
+  },
+  all_business_admin_users: async (req, res) => {
+    const { businessId } = req.user;
+    //const roleAdminWeb = process.env.ROLE_ADMINWEB;
+    const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
+    const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+
+    try {
+      // Agrego logs para ver si los valores son correctos
+      console.log("Business ID:", businessId);
+      //console.log("Role Admin Web:", roleAdminWeb);
+      
+      if (!businessId || !roleBusinessDirector || !roleBusinessManager) {
+        return res.status(400).json({ error: "Faltan parámetros necesarios" });
+      }
+  
+      // Realizo la búsqueda
+      const allUsers = await User.find({
+        businessId, // Comparación con el businessId
+        role: { $in: [roleBusinessDirector, roleBusinessManager] },//busca todos los roles administradores del negocio
+        status: "active" // Solo usuarios activos
+      });
+
+      console.log("Usuarios Administradores Encontrados:", allUsers);
+  
+      if (!allUsers || allUsers.length === 0) {
+        return res.status(404).json({ error: "No se encontraron usuarios administradores activos" });
+      }
+
+      const totalAdminsOneBusiness = allUsers.length;
+      console.log("Valor de totalAdminsOneBusiness: ", totalAdminsOneBusiness);
+  
+      // Retorna los usuarios encontrados
+      //res.json(allUsers);
+      res.json(totalAdminsOneBusiness);
+  
+    } catch (error) {
+      console.error("Error al buscar usuarios administradores de un negocio activos:", error);
+      res.status(500).json({ error: "Error al buscar usuarios administradores de un negocio activos" });
+    }
+  },
+  asociated_business_users: async (req, res) => {
+    try {
+      const { businessId } = req.user;
+      // Buscar usuarios con estado "active" asociados a un negocio en particular.
+      const users = await User.find({ businessId: businessId });
+
+      // Iterar sobre los usuarios y ajustar el rol
+      const activeAsociatedUsers = users.map((user) => {
+        let roleType = "";
+
+        // Cargar las variables de entorno para los roles
+        const roleAppAdmin = process.env.ROLE_APP_ADMIN;
+        const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
+        const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+        const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+        const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
+  
+        if (user.role === roleAppAdmin) {
+          roleType = "appAdmin";
+        } else if (user.role === roleBusinessDirector) {
+          roleType = "businessDirector";
+        } else if (user.role === roleBusinessManager) {
+          roleType = "businessManager";
+        } else if (user.role === roleBusinessEmployee) {
+          roleType = "businessEmployee";
+        } else if (user.role === roleMobileCustomer) {
+          roleType = "mobileCustomer";
+        }
+  
+        return {
+          ...user._doc,  // _doc contiene los datos del usuario
+          role: roleType,
+        };
+      });
+
+      // Enviar la respuesta con la lista de usuarios activos asociados a un negocio en particular y sus roles ajustados
+      res.json(activeAsociatedUsers);
+    } catch (error) {
+      // Manejo de errores
+      console.error("Error al obtener usuarios activos asociados a un negocio:", error);
+      res.status(500).json({ message: "Error al obtener usuarios activos asociados a un negocio" });
+    }
+  },
+  desactivate_user: async (req, res) => {
+    const { _id } = req.params;
+    console.log("Valor de userId en el controller desactivate_user: ", _id);
+
+    try {
+      // Buscar el usuario por su ID
+      const user = await User.findById(_id);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      // Actualizar el estado del usuario a 'pending'
+      user.status = "pending"; // Asume que hay un campo 'status' que almacena el estado del usuario
+
+     /*  const roleAdminWeb = process.env.ROLE_ADMINWEB;
+      // Si es necesario, también puedes actualizar el rol del usuario
+      user.role = roleAdminWeb; // Cambia el rol según lo que necesites */
+
+      // Guardar los cambios
+      await user.save();
+
+      return res.status(200).json({ success: true, message: "Se modificó el status del usuario a pending  exitosamente" });
+      console.log("El status del Usuario fue cambiado a 'pending' exitosamente");
+    } catch (error) {
+      console.error("Error al cambiar el estado del usuario de active a pending:", error);
+      return res.status(500).json({ message: "Error al cambiar el estado del usuario de active a pending" });
+    }
+  },
+  activate_user: async (req, res) => {
+    const { _id } = req.params;
+    console.log("Valor de userId en el controller activate_user: ", _id);
+
+    try {
+      // Buscar el usuario por su ID
+      const user = await User.findById(_id);
+
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado" });
+      }
+
+      // Actualizar el estado del usuario a 'active'
+      user.status = "active"; // Asume que hay un campo 'status' que almacena el estado del usuario
+
+      // Guardar los cambios
+      await user.save();
+
+      return res.status(200).json({ success: true, message: "Se modificó el status del usuario a active  exitosamente" });
+      console.log("El status del Usuario fue cambiado a 'active' exitosamente");
+    } catch (error) {
+      console.error("Error al cambiar el estado del usuario de pending a active:", error);
+      return res.status(500).json({ message: "Error al cambiar el estado del usuario de pending a active" });
+    }
+  },
+  delete_user: async (req, res) => {
+    try {
+      // Obtengo el ID del usuario desde los parámetros de la solicitud
+      const userId = req.params._id;
+  
+      // Verifico si el ID del usuario es válido
+      if (!userId) {
+        return res
+          .status(400)
+          .json({ success: false, message: "ID de usuario es requerido" });
+      }
+  
+      // Busco y elimino el usuario completamente de la base de datos
+      const deletedUser = await User.findByIdAndDelete(userId);
+  
+      // Si no se encuentra el usuario, devuelve un error 404
+      if (!deletedUser) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Usuario no encontrado" });
+      }
+  
+      // Si todo va bien, devuelve una respuesta de éxito
+      res.status(200).json({
+        success: true,
+        message: "Usuario eliminado correctamente",
+        deletedUser, // Devuelve el usuario eliminado
+      });
+    } catch (error) {
+      // Captura cualquier error inesperado y devuelve una respuesta de error 500
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Error al eliminar el usuario",
+        error: error.message,
+      });
+    }
+  }  
 };
 
 export default controller;

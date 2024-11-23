@@ -49,6 +49,7 @@ const businessSchema = mongoose.Schema({
     imageURL: String,
     pdfBusinessRegistration: String,
     urlLogo: String,
+    status: { type: String, enum: ["pending", "active", "rejected", "suspend"], default: "pending" },
 });
 
 // Crea el modelo de negocio
