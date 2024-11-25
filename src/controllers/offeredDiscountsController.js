@@ -49,106 +49,6 @@ export const deactivateExpiredDiscounts = async () => {
 setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); // Se ejecuta cada 1 hora
 
 const controller = {
-  //Este funciona perfecto sin guardar imagen en Firebase Storage
-  /* discount_create: async (req, res) => {
-    try {
-      const {
-        businessName,
-        //businessId,
-        businessType,
-        title,
-        description,
-        normalPrice,
-        discountAmount,
-        validityPeriod,
-        isActive,
-        businessLocationLatitude,
-        businessLocationLongitude
-      } = req.body;
-
-      console.log('Datos recibidos en discount_create:', req.body);
-
-      // Convertir las coordenadas a números
-      const numberBusinessLocationLatitude = parseFloat(businessLocationLatitude);
-      const numberBusinessLocationLongitude = parseFloat(businessLocationLongitude);
-
-      // Verificar si las coordenadas son válidas
-      if (isNaN(numberBusinessLocationLatitude) || isNaN(numberBusinessLocationLongitude)) {
-        return res.status(400).json({ message: 'businessLocationLatitude y businessLocationLongitude deben ser números válidos' });
-      }
-  
-      let imageURL = "";
-  
-      if (req.file && req.file.processedFilePath) {
-        imageURL = "img/" + req.file.processedFilePath;
-      }
-
-      // Obtener y registrar dimensiones y peso del archivo (de la imágen)
-      const { width, height } = req.file.metadata;
-      const fileSize = req.file.size; // Peso del archivo en bytes
-
-      console.log('Dimensiones de la imagen:');
-      console.log('Anchura:', width);
-      console.log('Altura:', height);
-      console.log('Peso del archivo:', fileSize, 'bytes');
-  
-      console.log("Valor de normalPrice: ", normalPrice);
-      console.log("Valor de discountAmount: ", discountAmount);
-  
-      const normalPriceNumber = new Decimal(normalPrice);
-      const discountAmountNumber = new Decimal(discountAmount);
-  
-      if (!normalPriceNumber.isFinite() || !discountAmountNumber.isFinite()) {
-        return res.status(400).json({ error: "Valores de precio o descuento no válidos" });
-      }
-  
-      const isActiveBoolean = isActive === "true";
-  
-      const newPrice = normalPriceNumber
-        .times(1 - discountAmountNumber.div(100))
-        .toDecimalPlaces(2)
-        .toNumber();
-  
-      const now = new Date();
-      const startDateTime = now;
-      const durationDays = validityPeriod ? Number(validityPeriod) : null;
-      const expirationDate = durationDays
-      ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
-      : null;
-
-      const { businessId } = req.user; // Extrae el userId del objeto req.user
-  
-      const newOfferedDiscount = new OfferedDiscount({
-        businessName,
-        businessId: businessId,
-        businessType,
-        title,
-        description,
-        normalPrice: normalPriceNumber.toNumber(),
-        priceWithDiscount: newPrice,
-        discountAmount: discountAmountNumber.toNumber(),
-        imageURL,
-        validityPeriod: durationDays,
-        isActive: isActiveBoolean,
-        startDateTime,
-        durationDays,
-        expirationDate,
-        businessLocationLatitude: numberBusinessLocationLatitude,
-        businessLocationLongitude: numberBusinessLocationLongitude
-      });
-  
-      const savedDiscount = await newOfferedDiscount.save();
-  
-      if (!savedDiscount) {
-        throw new Error("Error en el registro del descuento.");
-      }
-  
-      res.status(200).json({ message: "El descuento se guardó exitosamente." });
-    } catch (error) {
-      console.error("Error en el registro del descuento:", error.message);
-      res.status(500).json({ error: "Error en el registro del descuento." });
-    }
-  }, */
   /* discount_create: async (req, res) => {
     try {
       const {
@@ -248,7 +148,8 @@ const controller = {
       res.status(500).json({ error: "Error en el registro del descuento." });
     }
   }, */
-  discount_create: async (req, res) => {
+  //Este funciona bien en localhost. 24 noviembre 2024
+  /* discount_create: async (req, res) => {
     try {
       const {
         businessName,
@@ -287,11 +188,7 @@ const controller = {
       }
 
        let imageURL = "";
-      /*
-      //Verifica si hay un archivo subido y si es así guarda en su URL
-      if (req.file && req.file.imageUrl) {
-        imageURL = req.file.imageUrl;
-      } */
+      
 
       const imageUrl = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
 
@@ -353,6 +250,111 @@ const controller = {
       }
 
       res.status(200).json({ message: "El descuento se guardó exitosamente." });
+    } catch (error) {
+      console.error("Error en el registro del descuento:", error.message);
+      res.status(500).json({ error: "Error en el registro del descuento." });
+    }
+  }, */
+  discount_create: async (req, res) => {
+    try {
+      const {
+        businessName,
+        businessType,
+        title,
+        description,
+        normalPrice,
+        discountAmount,
+        validityPeriod,
+        isActive,
+        businessLocationLatitude,
+        businessLocationLongitude,
+      } = req.body;
+  
+      console.log("Datos recibidos en discount_create:", req.body);
+  
+      // Validar campos requeridos
+      const requiredFields = [
+        "businessName",
+        "businessType",
+        "title",
+        "description",
+        "normalPrice",
+        "discountAmount",
+        "validityPeriod",
+        "isActive",
+        "businessLocationLatitude",
+        "businessLocationLongitude",
+      ];
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          console.error(`Falta el campo ${field} en req.body`);
+        }
+      });
+  
+      console.log("Contenido de req.files:", req.files);
+      if (!req.files || !req.files.imageURL) {
+        console.error("No se encontró imageURL en req.files");
+      }
+  
+      const imageUrl = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+  
+      console.log("Contenido de req.user:", req.user);
+      if (!req.user || !req.user.businessId) {
+        console.error("Falta el campo businessId en req.user");
+        return res.status(400).json({ error: "Falta el campo businessId." });
+      }
+  
+      const normalPriceNumber = new Decimal(normalPrice);
+      const discountAmountNumber = new Decimal(discountAmount);
+  
+      console.log("Cálculo del precio con descuento:", {
+        normalPrice: normalPriceNumber.toNumber(),
+        discountAmount: discountAmountNumber.toNumber(),
+      });
+  
+      const newPrice = normalPriceNumber
+        .times(1 - discountAmountNumber.div(100))
+        .toDecimalPlaces(2)
+        .toNumber();
+  
+      console.log("Precio con descuento calculado:", newPrice);
+  
+      const now = new Date();
+      const startDateTime = now;
+      const durationDays = validityPeriod ? Number(validityPeriod) : null;
+      const expirationDate = durationDays
+        ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+  
+      const newOfferedDiscount = new OfferedDiscount({
+        businessName,
+        businessId: req.user.businessId,
+        businessType,
+        title,
+        description,
+        normalPrice: normalPriceNumber.toNumber(),
+        priceWithDiscount: newPrice,
+        discountAmount: discountAmountNumber.toNumber(),
+        imageURL: imageUrl,
+        validityPeriod: durationDays,
+        isActive: isActive === "true",
+        startDateTime,
+        durationDays,
+        expirationDate,
+        businessLocationLatitude: parseFloat(businessLocationLatitude),
+        businessLocationLongitude: parseFloat(businessLocationLongitude),
+      });
+  
+      try {
+        const savedDiscount = await newOfferedDiscount.save();
+        console.log("Descuento guardado exitosamente:", savedDiscount);
+        res.status(200).json({ message: "El descuento se guardó exitosamente." });
+      } catch (dbError) {
+        console.error("Error al guardar el descuento en la base de datos:", dbError);
+        res
+          .status(500)
+          .json({ error: "Error al guardar el descuento en la base de datos." });
+      }
     } catch (error) {
       console.error("Error en el registro del descuento:", error.message);
       res.status(500).json({ error: "Error en el registro del descuento." });
