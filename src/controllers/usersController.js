@@ -744,6 +744,9 @@ const controller = {
   login: async (req, res) => {
     const { email, password, isMobileUser, secret_key } = req.body;
 
+    console.log("Valor de isMobileUser: ", isMobileUser);
+    console.log("Valor de secret_key: ", secret_key);
+
     const showToken = false;
 
     const app_mobile_secret = process.env.APP_MOBILE_SECRET;
