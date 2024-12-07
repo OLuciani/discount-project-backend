@@ -3,9 +3,12 @@ import nodemailer from "nodemailer";
 import { auth, sendPasswordResetEmail, admin } from "../../config/firebase.js";
 //import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { promisify } from "util";
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import Business from "../models/Business.model.js";
+
+const compareAsync = promisify(bcrypt.compare);
 
 // Configuración de nodemailer
 const transporter = nodemailer.createTransport({
@@ -255,7 +258,8 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  user_register: async (req, res) => {
+  //Este controller de user_register anda perfecto pero el usuario se registra en firebase desde el frontend
+  /* user_register: async (req, res) => {
     const {
       name,
       lastName,
@@ -309,8 +313,82 @@ const controller = {
       console.error("Error en el registro:", error);
       res.status(500).json({ error: "Error en el registro" });
     }
+  }, */ 
+  user_register: async (req, res) => {
+    const { name, lastName, phone, email, password, businessName, businessId } = req.body;
+    
+    try {
+      const normalizedEmail = email.toLowerCase();
+  
+      // Verificar si el correo ya existe en MongoDB
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+      }
+  
+      // Verificar si el correo ya existe en Firebase
+      try {
+        await admin.auth().getUserByEmail(normalizedEmail);
+        return res.status(400).json({ error: "El correo electrónico ya está registrado en Firebase" });
+      } catch (firebaseError) {
+        if (firebaseError.code !== "auth/user-not-found") {
+          console.error("Error al verificar usuario en Firebase:", firebaseError);
+          return res.status(500).json({ error: "Error al verificar usuario en Firebase" });
+        }
+      }
+  
+      // Crear usuario en Firebase
+      let firebaseUser;
+      try {
+        firebaseUser = await admin.auth().createUser({
+          email: normalizedEmail,
+          password,
+        });
+        console.log("Usuario creado en Firebase:", firebaseUser.uid);
+      } catch (error) {
+        console.error("Error al crear usuario en Firebase:", error);
+        if (error.code === "auth/weak-password") {
+          return res.status(400).json({ error: "La contraseña es demasiado débil" });
+        }
+        if (error.code === "auth/invalid-email") {
+          return res.status(400).json({ error: "El correo electrónico es inválido" });
+        }
+        return res.status(500).json({ error: "Error al crear usuario en Firebase" });
+      }
+  
+      // Crear usuario en MongoDB
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR;
+  
+      const newUser = new User({
+        name,
+        lastName,
+        businessId,
+        businessName,
+        phone,
+        email: normalizedEmail,
+        originalEmail: email,
+        password: hashedPassword,
+        role: roleBusinessDirector,
+        firebaseUID: firebaseUser.uid,
+      });
+  
+      await newUser.save();
+      console.log("Nuevo usuario registrado en MongoDB:", newUser);
+  
+      res.json({
+        message: "Registro exitoso como usuario",
+        _id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+      });
+    } catch (error) {
+      console.error("Error en el registro:", error);
+      res.status(500).json({ error: "Error en el registro" });
+    }
   },
-  user_register_mobile: async (req, res) => {
+  //Este registro para user de app movil funciona bien pero no tiene el registro en firebase aqui en el backend
+  /* user_register_mobile: async (req, res) => {
     const {
       email,
       password,
@@ -341,6 +419,81 @@ const controller = {
         originalEmail: email,
         password: hashedPassword,
         role: roleMobileCustomer,
+      });
+
+      await newUser.save();
+      console.log("Nuevo usuario registrado:", newUser);
+
+      res.json({
+        message: "Registro exitoso como usuario",
+        _id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+      });
+    } catch (error) {
+      console.error("Error en el registro:", error);
+      res.status(500).json({ error: "Error en el registro" });
+    }
+  }, */
+  //Este registro lo creé para que se registre en firebase desdea aqui desde el backend. Falta modificar en la aplicacion móvil en react native eliminando el registro en firebase. El controller anterior funcionaba bien con el registro en firebase configurado en el frontend en la app móvil.
+  user_register_mobile: async (req, res) => {
+    const {
+      email,
+      password,
+    } = req.body;
+
+    try {
+      const normalizedEmail = email.toLowerCase();
+
+      console.log("Datos recibidos para registro de usuario de la app móvil:", req.body);
+
+      // Verificar si el correo ya existe en MongoDB
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+      }
+  
+      // Verificar si el correo ya existe en Firebase
+      try {
+        await admin.auth().getUserByEmail(normalizedEmail);
+        return res.status(400).json({ error: "El correo electrónico ya está registrado en Firebase" });
+      } catch (firebaseError) {
+        if (firebaseError.code !== "auth/user-not-found") {
+          console.error("Error al verificar usuario en Firebase:", firebaseError);
+          return res.status(500).json({ error: "Error al verificar usuario en Firebase" });
+        }
+      }
+  
+      // Crear usuario en Firebase
+      let firebaseUser;
+      try {
+        firebaseUser = await admin.auth().createUser({
+          email: normalizedEmail,
+          password,
+        });
+        console.log("Usuario creado en Firebase:", firebaseUser.uid);
+      } catch (error) {
+        console.error("Error al crear usuario en Firebase:", error);
+        if (error.code === "auth/weak-password") {
+          return res.status(400).json({ error: "La contraseña es demasiado débil" });
+        }
+        if (error.code === "auth/invalid-email") {
+          return res.status(400).json({ error: "El correo electrónico es inválido" });
+        }
+        return res.status(500).json({ error: "Error al crear usuario en Firebase" });
+      }
+
+      // Crear usuario en MongoDB
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
+
+      const newUser = new User({
+        email: normalizedEmail,
+        originalEmail: email,
+        password: hashedPassword,
+        role: roleMobileCustomer,
+        firebaseUID: firebaseUser.uid,
       });
 
       await newUser.save();
@@ -489,8 +642,7 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
   },
-  //Este login anda perfecto con businessName
-  login: async (req, res) => {
+  /* login: async (req, res) => {
     const { email, password } = req.body;
 
     const errors = validationResult(req);
@@ -508,15 +660,40 @@ const controller = {
 
       console.log("Intentando iniciar sesión con:", normalizedEmail);
 
-      const user = await User.findOne({ email: normalizedEmail });
+      // **Paso 1: Verificar credenciales en Firebase**
+      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
 
-      if (!user) {
-        console.log("Usuario no registrado:", normalizedEmail);
-        return res
-          .status(401)
-          .json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
+      try {
+
+        // Intentar autenticar el password del usuario en Firebase
+        const customToken = await admin
+          .auth()
+          .createCustomToken(firebaseUser.uid);
+
+        console.log("Usuario autenticado en Firebase:", firebaseUser.email);
+      } catch (firebaseError) {
+        console.error("Error en Firebase:", firebaseError.message);
+        return res.status(401).json({
+          code: "FIREBASE_AUTH_ERROR",
+          message: "Error de autenticación en Firebase",
+        });
       }
 
+      // Verificar usuario en MongoDB
+      const user = await User.findOne({ email: normalizedEmail });
+
+      //if (!user) {
+        //console.log("Usuario no registrado:", normalizedEmail);
+       // return res
+         // .status(401)
+          //.json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
+      //}
+
+      if (!user || user.firebaseUID !== firebaseUser.uid) {
+        return res.status(401).json({ message: "Autenticación fallida" });
+      }
+  
+      // Validar contraseña en MongoDB
       const isPasswordValid = bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
         console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
@@ -525,7 +702,7 @@ const controller = {
           .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
       }
 
-      //este token lo estoy probando en lugar del anterior
+      // Genero y configuro token
       const token = jwt.sign(
         { userId: user._id, businessId: user.businessId, role: user.role, businessName: user.businessName, accountCreator: user.accountCreator },
         process.env.AUTH_SECRET,
@@ -533,6 +710,114 @@ const controller = {
       );
 
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
+
+      //Configuación que utilizo para desarrollo
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false, // `false` en desarrollo
+        sameSite: "Strict", // `Lax` en desarrollo
+        maxAge: 15 * 60 * 1000, // 15 minutos
+      });
+
+      //Configuación que utilizo para producción
+      //res.cookie('token', token, {
+        //httpOnly: true,
+        //secure: true, // `true` en producción
+        //sameSite: 'None', // `None` en producción
+        //maxAge: 15 * 60 * 1000, // 15 minutos
+        //path: '/',  //Esta linea la agruegué 
+      //});
+
+      res.json({
+        message: "Inicio de sesión exitoso",
+        success: true,
+        token, //Lo agregué para probar la aplicacion movil(ver si hay que sacarlo)
+      });
+    } catch (error) {
+      console.error("Error en el proceso de autnticación:", error);
+      res.status(500).json({
+        code: "AUTHENTICATION_ERROR",
+        message: "Error en la autenticación",
+      });
+    }
+  }, */
+  login: async (req, res) => {
+    const { email, password } = req.body;
+  
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log("Errores de validación:", errors.array());
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Errores de validación",
+        errors: errors.array(),
+      });
+    }
+  
+    try {
+      const normalizedEmail = email.toLowerCase();
+  
+      console.log("Intentando iniciar sesión con:", normalizedEmail);
+  
+      // Verificar credenciales en Firebase
+      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
+  
+      try {
+        await admin.auth().createCustomToken(firebaseUser.uid);
+        console.log("Usuario autenticado en Firebase:", normalizedEmail);
+      } catch (firebaseError) {
+        console.error("Error en Firebase:", firebaseError.message);
+        return res.status(401).json({
+          code: "FIREBASE_AUTH_ERROR",
+          message: "Error de autenticación en Firebase",
+        });
+      }
+  
+      // Verificar usuario en MongoDB
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user || user.firebaseUID !== firebaseUser.uid) {
+        return res.status(401).json({ message: "Autenticación fallida" });
+      }
+  
+      // Validar contraseña
+      /* const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
+        return res
+          .status(401)
+          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
+      } */
+      const isPasswordValid = await compareAsync(password, user.password);
+      if (!isPasswordValid) {
+        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
+        return res
+          .status(401)
+          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
+      }
+  
+      // Generar token
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          businessId: user.businessId,
+          role: user.role,
+          businessName: user.businessName,
+          accountCreator: user.accountCreator,
+        },
+        process.env.AUTH_SECRET,
+        { expiresIn: "15m" }
+      );
+  
+      console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
+  
+      /* // Configurar cookie según entorno
+      const isProduction = process.env.NODE_ENV === "production";
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: isProduction ? "None" : "Strict",
+        maxAge: 15 * 60 * 1000,
+      }); */
 
       //Configuación que utilizo para desarrollo
       /* res.cookie("token", token, {
@@ -550,17 +835,17 @@ const controller = {
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/',  //Esta linea la agruegué 
       });
-
+  
       res.json({
         message: "Inicio de sesión exitoso",
         success: true,
-        token, //Lo agregué para probar la aplicacion movil(ver si hay que sacarlo)
       });
     } catch (error) {
-      console.error("Error al buscar el usuario:", error);
+      console.error("Error en el proceso de autenticación:", error);
       res.status(500).json({
         code: "AUTHENTICATION_ERROR",
         message: "Error en la autenticación",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
   },
@@ -1008,7 +1293,7 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  create_business_employee_user: async (req, res) => {
+  /* create_business_employee_user: async (req, res) => {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
     // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
@@ -1049,6 +1334,91 @@ const controller = {
         password: hashedPassword,
         role: roleBusinessEmployee,
         status: "active",
+      });
+
+      await newUser.save();
+      console.log("Nuevo usuario con acceso a scanner en aplicación movil registrado:", newUser);
+
+      res.json({
+        message: "Registro exitoso como usuario con acceso a scanner en aplicación movil.",
+        _id: newUser._id,
+        name: newUser.name,
+        lastName: newUser.lastName,
+      });
+    } catch (error) {
+      console.error("Error en el registro de usuario con acceso a scanner en aplicación movil:", error);
+      res.status(500).json({ error: "Error en el registro de usuario con acceso a scanner en aplicación movil" });
+    }
+  }, */
+  create_business_employee_user: async (req, res) => {
+    const { name, lastName, email, phone, password, businessId} = req.body;
+
+    // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
+    if (req.user.email !== email) {
+      return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
+    }
+
+    console.log("Valor de email: ", email);
+    console.log("Valor de businessId: ", businessId);
+
+    try {
+      const normalizedEmail = email.toLowerCase();
+
+      console.log("Datos recibidos para registro del usuario empleado de cuenta de negocio:", req.body);
+
+      // Verificar si el correo ya existe en MongoDB
+      let existingUser = await User.findOne({ email: normalizedEmail });
+      if (existingUser) {
+        return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+      }
+  
+      // Verificar si el correo ya existe en Firebase
+      try {
+        await admin.auth().getUserByEmail(normalizedEmail);
+        return res.status(400).json({ error: "El correo electrónico ya está registrado en Firebase" });
+      } catch (firebaseError) {
+        if (firebaseError.code !== "auth/user-not-found") {
+          console.error("Error al verificar usuario en Firebase:", firebaseError);
+          return res.status(500).json({ error: "Error al verificar usuario en Firebase" });
+        }
+      }
+  
+      // Crear usuario en Firebase
+      let firebaseUser;
+      try {
+        firebaseUser = await admin.auth().createUser({
+          email: normalizedEmail,
+          password,
+        });
+        console.log("Usuario creado en Firebase:", firebaseUser.uid);
+      } catch (error) {
+        console.error("Error al crear usuario en Firebase:", error);
+        if (error.code === "auth/weak-password") {
+          return res.status(400).json({ error: "La contraseña es demasiado débil" });
+        }
+        if (error.code === "auth/invalid-email") {
+          return res.status(400).json({ error: "El correo electrónico es inválido" });
+        }
+        return res.status(500).json({ error: "Error al crear usuario en Firebase" });
+      }
+
+      // Crear usuario en MongoDB
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
+
+      const newUser = new User({
+        name,
+        lastName,
+        businessId,
+        email: normalizedEmail,
+        originalEmail: email,
+        phone: phone,
+        password: hashedPassword,
+        role: roleBusinessEmployee,
+        status: "active",
+        firebaseUID: firebaseUser.uid,
       });
 
       await newUser.save();
@@ -1114,7 +1484,7 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  create_extra_business_admin_user: async (req, res) => {
+  /* create_extra_business_admin_user: async (req, res) => {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
     const asociateBusiness = await Business.findById(businessId) // Busco el negocio por su ID
@@ -1161,6 +1531,97 @@ const controller = {
           //businessType: asociateBusiness.businessType,
           role: roleBusinessManager,
           status: "active",
+        });
+  
+        await newUser.save();
+        console.log("Nuevo usuario administrador de cuenta de negocio extra registrado exitosamente:", newUser);
+  
+        res.json({
+          message: "Registro exitoso como usuario administrador de cuenta de negocio extra.",
+          _id: newUser._id,
+          name: newUser.name,
+          lastName: newUser.lastName,
+        });
+      } catch (error) {
+        console.error("Error en el registro de usuario administrador de cuenta de negocio extra:", error);
+        res.status(500).json({ error: "Error en el registro de usuario administrador de cuenta de negocio extra" });
+      }
+    }
+  }, */
+  create_extra_business_admin_user: async (req, res) => {
+    const { name, lastName, email, phone, password, businessId} = req.body;
+
+    const asociateBusiness = await Business.findById(businessId) // Busco el negocio por su ID
+      
+    if (asociateBusiness) {
+
+      // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
+      if (req.user.email !== email) {
+        return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
+      }
+  
+      console.log("Valor de email: ", email);
+      console.log("Valor de businessId: ", businessId);
+  
+      try {
+        const normalizedEmail = email.toLowerCase();
+  
+        console.log("Datos recibidos para registro del usuario administrador de cuenta de negocio extra:", req.body);
+  
+        // Verificar si el correo ya existe en MongoDB
+        let existingUser = await User.findOne({ email: normalizedEmail });
+        if (existingUser) {
+          return res.status(400).json({ error: "El correo electrónico ya está registrado" });
+        }
+    
+        // Verificar si el correo ya existe en Firebase
+        try {
+          await admin.auth().getUserByEmail(normalizedEmail);
+          return res.status(400).json({ error: "El correo electrónico ya está registrado en Firebase" });
+        } catch (firebaseError) {
+          if (firebaseError.code !== "auth/user-not-found") {
+            console.error("Error al verificar usuario en Firebase:", firebaseError);
+            return res.status(500).json({ error: "Error al verificar usuario en Firebase" });
+          }
+        }
+    
+        // Crear usuario en Firebase
+        let firebaseUser;
+        try {
+          firebaseUser = await admin.auth().createUser({
+            email: normalizedEmail,
+            password,
+          });
+          console.log("Usuario creado en Firebase:", firebaseUser.uid);
+        } catch (error) {
+          console.error("Error al crear usuario en Firebase:", error);
+          if (error.code === "auth/weak-password") {
+            return res.status(400).json({ error: "La contraseña es demasiado débil" });
+          }
+          if (error.code === "auth/invalid-email") {
+            return res.status(400).json({ error: "El correo electrónico es inválido" });
+          }
+          return res.status(500).json({ error: "Error al crear usuario en Firebase" });
+        }
+  
+        // Crear usuario en MongoDB
+        const hashedPassword = await bcrypt.hash(password, 10);
+  
+        const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
+  
+        const newUser = new User({
+          name,
+          lastName,
+          email: normalizedEmail,
+          originalEmail: email,
+          phone: phone,
+          password: hashedPassword,
+          businessId,
+          //businessName: asociateBusiness.businessName,
+          //businessType: asociateBusiness.businessType,
+          role: roleBusinessManager,
+          status: "active",
+          firebaseUID: firebaseUser.uid,
         });
   
         await newUser.save();
