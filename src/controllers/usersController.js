@@ -741,7 +741,7 @@ const controller = {
       });
     }
   }, */
-  login: async (req, res) => {
+  /* login: async (req, res) => {
     const { email, password, isMobileUser, secret_key } = req.body;
 
     console.log("Valor de isMobileUser: ", isMobileUser);
@@ -791,13 +791,14 @@ const controller = {
       }
   
       // Validar contraseña
-      /* const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-        return res
-          .status(401)
-          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
-      } */
+       //const isPasswordValid = await bcrypt.compare(password, user.password);
+      //if (!isPasswordValid) {
+        //console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
+       // return res
+         // .status(401)
+          //.json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
+      //} 
+
       const isPasswordValid = await compareAsync(password, user.password);
       if (!isPasswordValid) {
         console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
@@ -821,22 +822,13 @@ const controller = {
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
   
-      /* // Configurar cookie según entorno
-      const isProduction = process.env.NODE_ENV === "production";
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: isProduction,
-        sameSite: isProduction ? "None" : "Strict",
-        maxAge: 15 * 60 * 1000,
-      }); */
-
       //Configuación que utilizo para desarrollo
-      /* res.cookie("token", token, {
-        httpOnly: true,
-        secure: false, // `false` en desarrollo
-        sameSite: "Strict", // `Lax` en desarrollo
-        maxAge: 15 * 60 * 1000, // 15 minutos
-      }); */
+      // res.cookie("token", token, {
+        //httpOnly: true,
+       // secure: false, // `false` en desarrollo
+        //sameSite: "Strict", // `Lax` en desarrollo
+       // maxAge: 15 * 60 * 1000, // 15 minutos
+      //}); 
 
       //Configuación que utilizo para producción
       res.cookie('token', token, {
@@ -860,7 +852,103 @@ const controller = {
         error: process.env.NODE_ENV === "development" ? error.message : undefined,
       });
     }
-  },
+  }, */
+  login: async (req, res) => {
+    const { email, password, isMobileUser, secret_key } = req.body;
+  
+    console.log("Valor de isMobileUser: ", isMobileUser);
+    console.log("Valor de secret_key: ", secret_key);
+  
+    let showToken = false;
+  
+    const app_mobile_secret = process.env.APP_MOBILE_SECRET;
+  
+    if (secret_key === app_mobile_secret && isMobileUser) {
+      showToken = true;
+    }
+  
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      console.log("Errores de validación:", errors.array());
+      return res.status(400).json({
+        code: "VALIDATION_ERROR",
+        message: "Errores de validación",
+        errors: errors.array(),
+      });
+    }
+  
+    try {
+      const normalizedEmail = email.toLowerCase();
+  
+      console.log("Intentando iniciar sesión con:", normalizedEmail);
+  
+      // Verificar credenciales en Firebase
+      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
+  
+      try {
+        await admin.auth().createCustomToken(firebaseUser.uid);
+        console.log("Usuario autenticado en Firebase:", normalizedEmail);
+      } catch (firebaseError) {
+        console.error("Error en Firebase:", firebaseError.message);
+        return res.status(401).json({
+          code: "FIREBASE_AUTH_ERROR",
+          message: "Error de autenticación en Firebase",
+        });
+      }
+  
+      // Verificar usuario en MongoDB
+      const user = await User.findOne({ email: normalizedEmail });
+      if (!user || user.firebaseUID !== firebaseUser.uid) {
+        return res.status(401).json({ message: "Autenticación fallida" });
+      }
+  
+      // Validar contraseña
+      const isPasswordValid = await compareAsync(password, user.password);
+      if (!isPasswordValid) {
+        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
+        return res
+          .status(401)
+          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
+      }
+  
+      // Generar token
+      const token = jwt.sign(
+        {
+          userId: user._id,
+          businessId: user.businessId,
+          role: user.role,
+          businessName: user.businessName,
+          accountCreator: user.accountCreator,
+        },
+        process.env.AUTH_SECRET,
+        { expiresIn: "15m" }
+      );
+  
+      console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
+  
+      // Configuración para producción
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: true, // `true` en producción
+        sameSite: 'None', // `None` en producción
+        maxAge: 15 * 60 * 1000, // 15 minutos
+        path: '/',  // Esta línea la agregué para asegurar que la cookie esté accesible en toda la app
+      });
+  
+      res.json({
+        message: "Inicio de sesión exitoso",
+        success: true,
+        token: showToken ? token : null,
+      });
+    } catch (error) {
+      console.error("Error en el proceso de autenticación:", error);
+      res.status(500).json({
+        code: "AUTHENTICATION_ERROR",
+        message: "Error en la autenticación",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      });
+    }
+  },  
   user_profile: async (req, res) => {
     const { userId, businessId } = req.user; // Extrae el userId del objeto req.user
     try {
