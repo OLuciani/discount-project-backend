@@ -742,7 +742,15 @@ const controller = {
     }
   }, */
   login: async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, isMobileUser, secret_key } = req.body;
+
+    const showToken = false;
+
+    const app_mobile_secret = process.env.APP_MOBILE_SECRET;
+
+    if(secret_key === app_mobile_secret && isMobileUser) {
+      showToken = true; 
+    }
   
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -839,6 +847,7 @@ const controller = {
       res.json({
         message: "Inicio de sesión exitoso",
         success: true,
+        token: showToken ? token : null
       });
     } catch (error) {
       console.error("Error en el proceso de autenticación:", error);
