@@ -34,9 +34,9 @@ const controller = {
     });
 },
   discountQr_create: (req, res) => {
-    const { userId, businessId, businessName } = req.user;
+    const { userId } = req.user;
 
-    const { offeredDiscountId, discountDetails, createdAt,  expirationDate, discountTitle, discountPrice} = req.body;
+    const { offeredDiscountId, discountDetails, createdAt,  expirationDate, discountTitle, discountPrice, businessId, businessName} = req.body;
 
     const newDiscountQr = new UserDiscountQr({
       discountTitle: discountTitle,
