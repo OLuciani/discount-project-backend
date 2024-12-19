@@ -117,7 +117,7 @@ const processFiles = async (req, res, next) => {
 
       const processedImage = await sharp(imageFile.buffer)
         .rotate() // Corrige la orientación basándose en los metadatos EXIF
-        .resize({ width: 800 }) // Redimensiona a un ancho de 800px
+        .resize({ width: 800, height: 533 }) // Mantiene la proporción 169:112 del frontend
         .webp({ quality: 80 }) // Convierte a formato WebP
         .toBuffer();
 
