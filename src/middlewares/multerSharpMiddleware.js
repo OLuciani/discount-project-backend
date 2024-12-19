@@ -116,6 +116,7 @@ const processFiles = async (req, res, next) => {
       const imageFile = files.imageURL[0];
 
       const processedImage = await sharp(imageFile.buffer)
+        .rotate() // Corrige la orientación basándose en los metadatos EXIF
         .resize({ width: 800 }) // Redimensiona a un ancho de 800px
         .webp({ quality: 80 }) // Convierte a formato WebP
         .toBuffer();
@@ -134,6 +135,7 @@ const processFiles = async (req, res, next) => {
       const logoFile = files.logo[0];
 
       const processedLogo = await sharp(logoFile.buffer)
+        .rotate() // Corrige la orientación basándose en los metadatos EXIF
         .resize({ width: 800 }) // Redimensiona a un ancho de 800px
         .webp({ quality: 80 }) // Convierte a formato WebP
         .toBuffer();

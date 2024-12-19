@@ -925,6 +925,14 @@ const controller = {
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
+
+      //Configuación que utilizo para desarrollo
+      // res.cookie("token", token, {
+        //httpOnly: true,
+       // secure: false, // `false` en desarrollo
+        //sameSite: "Strict", // `Lax` en desarrollo
+       // maxAge: 15 * 60 * 1000, // 15 minutos
+      //});
   
       // Configuración para producción
       res.cookie('token', token, {
