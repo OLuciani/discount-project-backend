@@ -142,7 +142,7 @@ import cookieParser from "cookie-parser";
 import { deactivateExpiredDiscounts } from "./controllers/offeredDiscountsController.js";
 import mongoose from "mongoose";
 import helmet from "helmet";  // Importa helmet para protección adicional
-import csrf from 'csrf';  // Importa la librería csrf
+import csrf from 'csurf';  // Importa la librería csrf
 
 dotenv.config();
 
@@ -151,8 +151,10 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url); 
 const __dirname = dirname(__filename); 
 
-// Crea un generador de tokens CSRF
-const csrfProtection = csrf();
+// Crear el middleware de CSRF con cookies habilitadas
+const csrfProtection = csrf({
+  cookie: true // Habilitar cookies para almacenar el token CSRF
+});
 
 // Middleware para seguridad adicional con helmet
 app.use(helmet()); // Aplica todas las protecciones de helmet (como XSS, clickjacking, etc.)
@@ -278,5 +280,5 @@ app.get('/form', csrfProtection, (req, res) => {
 // Ruta para manejar el envío de formulario
 app.post('/submit', csrfProtection, (req, res) => {
   res.send('Formulario enviado correctamente');
-});
+});  
 
