@@ -541,7 +541,7 @@ const controller = {
       const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
       const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
   
-      // Buscar usuarios con estado "active" y roles relevantes
+      // Buscar usuarios 
       const users = await User.find({
         //status: "active",
         role: { $in: [roleBusinessDirector, roleBusinessManager, roleBusinessEmployee, roleMobileCustomer] }
@@ -567,13 +567,65 @@ const controller = {
         };
       });
   
-      // Enviar los usuarios activos al frontend
+      // Enviar los usuarios al frontend
       res.json(activeUsers);
     } catch (error) {
-      console.error("Error al obtener usuarios activos:", error);
-      res.status(500).json({ message: "Error al obtener usuarios activos" });
+      console.error("Error al obtener usuarios:", error);
+      res.status(500).json({ message: "Error al obtener usuarios" });
     }
-  },
+  },   
+  /* all_users_list: async (req, res) => {
+    try {
+      // Extraer parámetros del request
+      const { role, page = 1, limit = 10 } = req.query;
+  
+      // Preparar filtro de búsqueda
+      let query = {};
+      if (role && role !== "Todos los Usuarios") {
+        // Mapear roles del frontend a los valores reales en la base de datos
+        const roleMapping = {
+          "Admin del Sistema": process.env.ROLE_SYSTEM_ADMIN,
+          "Admin del Negocio": process.env.ROLE_BUSINESS_ADMIN,
+          Usuario: process.env.ROLE_USER,
+        };
+        const mappedRole = roleMapping[role];
+  
+        if (mappedRole) {
+          query.role = mappedRole;
+        } else {
+          return res.status(400).json({ message: "Rol no válido" });
+        }
+      }
+  
+      // Cálculo de paginación
+      const pageNumber = Number(page); // Página actual
+      const limitNumber = Number(limit); // Límite de usuarios por página
+      const skip = (pageNumber - 1) * limitNumber; // Usuarios a omitir
+  
+      // Obtener usuarios filtrados y paginados
+      const users = await User.find(query)
+        .skip(skip)
+        .limit(limitNumber);
+  
+      // Contar el total de usuarios que cumplen el filtro
+      const totalUsers = await User.countDocuments(query);
+  
+      // Calcular el total de páginas
+      const totalPages = Math.ceil(totalUsers / limitNumber);
+  
+      // Responder con los usuarios y datos de paginación
+      res.status(200).json({
+        users,
+        totalUsers,
+        totalPages,
+      });
+    } catch (error) {
+      console.error("Error al obtener la lista de usuarios:", error);
+      res.status(500).json({
+        message: "Error al obtener usuarios. Por favor, inténtalo de nuevo más tarde.",
+      });
+    }
+  }, */
   businessId_and_businessType_update: async (req, res) => {
     const userId = req.params._id;
     const { businessId, businessType, pdfBusinessRegistration } = req.body;
@@ -927,12 +979,12 @@ const controller = {
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
 
       //Configuación que utilizo para desarrollo
-      // res.cookie("token", token, {
-        //httpOnly: true,
-       // secure: false, // `false` en desarrollo
-        //sameSite: "Strict", // `Lax` en desarrollo
-       // maxAge: 15 * 60 * 1000, // 15 minutos
-      //});
+      /*  res.cookie("token", token, {
+       httpOnly: true,
+       secure: false, // `false` en desarrollo
+       sameSite: "Strict", // `Lax` en desarrollo
+       maxAge: 15 * 60 * 1000, // 15 minutos
+      }); */
   
       // Configuración para producción
       res.cookie('token', token, {

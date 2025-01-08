@@ -12,11 +12,8 @@ const roleAdminApp = process.env.ROLE_APP_ADMIN;
 const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR; 
 
 
-//router.post("/business_create", upload.single("imageURL"), processImage, uploadDocument.single("pdfBusinessRegistration"), processDocument, businessController.business_create);
-
 router.post("/business_create", upload, processFiles, businessController.business_create);
 
-//router.get("/business_detail/:_id", authenticateToken, businessController.business_detail);
 router.get("/business_detail/:_id?", authenticateToken, businessController.business_detail);
 
 router.get("/light_business_details/:_id", businessController.light_business_details);
