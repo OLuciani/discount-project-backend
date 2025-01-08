@@ -1,4 +1,4 @@
-/* import express from "express";
+import express from "express";
 import path from "path";
 import cors from "cors";
 import methodOverride from "method-override";
@@ -117,139 +117,6 @@ app.use(BASE_API_PATH, checkAdminAppRoute);
 //app.use(BASE_API_PATH, dashboardRoute);
 
 
-//const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
-const PORT = 5050;
-
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
-// Middleware para manejo de errores
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
-}); */
-
-
-import express from "express";
-import path from "path";
-import cors from "cors";
-import methodOverride from "method-override";
-import dotenv from "dotenv";
-import { fileURLToPath } from 'url'; 
-import { dirname } from 'path'; 
-import cookieParser from "cookie-parser";
-import { deactivateExpiredDiscounts } from "./controllers/offeredDiscountsController.js";
-import mongoose from "mongoose";
-import helmet from "helmet";  // Importa helmet para protección adicional
-import csrf from 'csurf';  // Importa la librería csrf
-
-dotenv.config();
-
-const app = express();
-
-const __filename = fileURLToPath(import.meta.url); 
-const __dirname = dirname(__filename); 
-
-// Crear el middleware de CSRF con cookies habilitadas
-const csrfProtection = csrf({
-  cookie: true // Habilitar cookies para almacenar el token CSRF
-});
-
-// Middleware para seguridad adicional con helmet
-app.use(helmet()); // Aplica todas las protecciones de helmet (como XSS, clickjacking, etc.)
-
-app.use(express.static(path.join(__dirname, "../public")));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// Middleware para habilitar CORS
-app.use(cors({
-  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-// Manejo de preflight requests
-app.options('*', cors({
-  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
-
-app.use(methodOverride('_method', {
-  methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']
-}));
-
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
-// Configuración de middleware cookieParser
-app.use(cookieParser());
-
-// Ruta de prueba para verificar el middleware de cookies
-app.get('/test-cookies', (req, res) => {
-  console.log(req.cookies); // Esto debería mostrar todas las cookies recibidas en la consola
-  res.send('Check your console for cookies!');
-});
-
-// Ruta para configurar cookies (ejemplo)
-app.get('/set-cookie', (req, res) => {
-  res.cookie('testCookie', 'testValue', { 
-    httpOnly: true, 
-    secure: false, // Cambia a true en producción
-    sameSite: 'Lax' 
-  });
-  res.send('Cookie has been set!');
-});
-
-// Conexión a MongoDB
-async function connectToDatabase() {
-  try {
-    const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
-    await mongoose.connect(URI_MONGO_DB, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-    });
-    console.log("Conectado a la Base de Datos MongoDB");
-  } catch (error) {
-    console.error("Error de conexión a la Base de Datos MongoDB:", error);
-  }
-}
-
-connectToDatabase();
-mongoose.set("strictQuery", true);
-
-// Llamo a la función para desactivar descuentos expirados al iniciar la aplicación
-deactivateExpiredDiscounts();
-
-// Llamo a la función periódicamente cada hora
-setInterval(deactivateExpiredDiscounts, 60 * 60 * 1000); 
-
-// Importación de rutas
-import mainRoute from "./routes/mainRoute.js";
-import usersRoute from "./routes/usersRoute.js";
-import offeredDiscountsRoute from "./routes/offeredDiscountRoute.js";
-import userDiscountQrsRoute from "./routes/userDiscountQrsRoute.js";
-import businessRoute from "./routes/businessRoute.js";
-import checkAccountRoute from "./routes/checkAccountRoute.js";
-import checkAdminAppRoute from "./routes/checkAdminAppRoute.js";
-
-// Definición de rutas
-const BASE_API_PATH = "/api";
-app.use("/", mainRoute);
-app.use(BASE_API_PATH, usersRoute);
-app.use(BASE_API_PATH, offeredDiscountsRoute);
-app.use(BASE_API_PATH, userDiscountQrsRoute);
-app.use(BASE_API_PATH, businessRoute);
-app.use(BASE_API_PATH, checkAccountRoute);
-app.use(BASE_API_PATH, checkAdminAppRoute);
-
-// Configuración de puerto
 const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
 //const PORT = 5050;
 
@@ -259,26 +126,7 @@ app.listen(PORT, '0.0.0.0', () => {
 
 // Middleware para manejo de errores
 app.use((err, req, res, next) => {
-  if (err.code === 'EBADCSRFTOKEN') {
-    res.status(403).send('Token CSRF inválido');
-  } else {
-    console.error(err.stack);
-    res.status(500).send('Something broke!');
-  }
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
 });
-
-// Ruta de formulario para demostrar el uso de CSRF
-app.get('/form', csrfProtection, (req, res) => {
-  res.send(`
-    <form action="/submit" method="POST">
-      <input type="hidden" name="_csrf" value="${req.csrfToken()}">  <!-- Agregar el token CSRF -->
-      <button type="submit">Enviar</button>
-    </form>
-  `);
-});
-
-// Ruta para manejar el envío de formulario
-app.post('/submit', csrfProtection, (req, res) => {
-  res.send('Formulario enviado correctamente');
-});  
 

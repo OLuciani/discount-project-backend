@@ -16,7 +16,6 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "csrf": "^3.1.0",
     "decimal.js": "^10.4.3",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
@@ -24,7 +23,6 @@
     "express-validator": "^7.0.1",
     "firebase": "^10.12.2",
     "firebase-admin": "^12.1.1",
-    "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
     "mongoose": "^8.2.1",
@@ -35,7 +33,6 @@
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.7",
-    "@types/csurf": "^1.11.5",
     "@types/multer": "^1.4.12"
   }
 }
