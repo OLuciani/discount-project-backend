@@ -255,7 +255,7 @@ const controller = {
       res.status(500).json({ error: "Error en el registro del descuento." });
     }
   }, */
-  discount_create: async (req, res) => {
+  /* discount_create: async (req, res) => {
     try {
       const {
         businessName,
@@ -348,6 +348,142 @@ const controller = {
       try {
         const savedDiscount = await newOfferedDiscount.save();
         console.log("Descuento guardado exitosamente:", savedDiscount);
+        res.status(200).json({ message: "El descuento se guardó exitosamente." });
+      } catch (dbError) {
+        console.error("Error al guardar el descuento en la base de datos:", dbError);
+        res
+          .status(500)
+          .json({ error: "Error al guardar el descuento en la base de datos." });
+      }
+    } catch (error) {
+      console.error("Error en el registro del descuento:", error.message);
+      res.status(500).json({ error: "Error en el registro del descuento." });
+    }
+  }, */
+  //Con subrole visit_user
+  discount_create: async (req, res) => {
+    try {
+      const {
+        businessName,
+        businessType,
+        title,
+        description,
+        normalPrice,
+        discountAmount,
+        validityPeriod,
+        isActive,
+        businessLocationLatitude,
+        businessLocationLongitude,
+      } = req.body;
+  
+      console.log("Datos recibidos en discount_create:", req.body);
+  
+      // Validar campos requeridos
+      const requiredFields = [
+        "businessName",
+        "businessType",
+        "title",
+        "description",
+        "normalPrice",
+        "discountAmount",
+        "validityPeriod",
+        "isActive",
+        "businessLocationLatitude",
+        "businessLocationLongitude",
+      ];
+      requiredFields.forEach((field) => {
+        if (!req.body[field]) {
+          console.error(`Falta el campo ${field} en req.body`);
+        }
+      });
+  
+      console.log("Contenido de req.files:", req.files);
+      if (!req.files || !req.files.imageURL) {
+        console.error("No se encontró imageURL en req.files");
+      }
+  
+      const imageUrl = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+  
+      console.log("Contenido de req.user:", req.user);
+      if (!req.user || !req.user.businessId) {
+        console.error("Falta el campo businessId en req.user");
+        return res.status(400).json({ error: "Falta el campo businessId." });
+      }
+  
+      const normalPriceNumber = new Decimal(normalPrice);
+      const discountAmountNumber = new Decimal(discountAmount);
+  
+      console.log("Cálculo del precio con descuento:", {
+        normalPrice: normalPriceNumber.toNumber(),
+        discountAmount: discountAmountNumber.toNumber(),
+      });
+  
+      const newPrice = normalPriceNumber
+        .times(1 - discountAmountNumber.div(100))
+        .toDecimalPlaces(2)
+        .toNumber();
+  
+      console.log("Precio con descuento calculado:", newPrice);
+  
+      const now = new Date();
+      const startDateTime = now;
+      const durationDays = validityPeriod ? Number(validityPeriod) : null;
+      let expirationDate = durationDays
+        ? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
+        : null;
+
+      // Si el subRole del usuario es "visit_user", establecer un tiempo de expiración de 30 minutos
+      const { subRole } = req.user;
+      const subRole_user = process.env.SUBROLE_VISIT_USER;
+
+      if (subRole === subRole_user) {
+        expirationDate = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutos
+      }
+  
+      const newOfferedDiscount = new OfferedDiscount({
+        businessName,
+        businessId: req.user.businessId,
+        businessType,
+        title,
+        description,
+        normalPrice: normalPriceNumber.toNumber(),
+        priceWithDiscount: newPrice,
+        discountAmount: discountAmountNumber.toNumber(),
+        imageURL: imageUrl,
+        validityPeriod: durationDays,
+        isActive: isActive === "true",
+        startDateTime,
+        durationDays,
+        expirationDate,
+        businessLocationLatitude: parseFloat(businessLocationLatitude),
+        businessLocationLongitude: parseFloat(businessLocationLongitude),
+      });
+  
+      //Guardar el descuento en la base de datos
+      try {
+        const savedDiscount = await newOfferedDiscount.save();
+        console.log("Descuento guardado exitosamente:", savedDiscount);
+
+        // Si el descuento es creado por un usuario con subRole "visit_user", programar su eliminación después de 30 minutos
+        if (subRole === subRole_user) {
+          setTimeout(async () => {
+            try {
+              // Eliminar descuento de la base de datos
+              await OfferedDiscount.findByIdAndDelete(savedDiscount._id);
+              console.log(`Descuento con ID ${savedDiscount._id} eliminado automáticamente después de 30 minutos.`);
+
+              // Eliminar la imagen de Firebase (si existe)
+              if (savedDiscount.imageURL) {
+                await deleteImageFromFirebase(savedDiscount.imageURL); // Eliminar la imagen
+                console.log(`Imagen eliminada con éxito: ${savedDiscount.imageURL}`);
+              }
+
+            } catch (error) {
+              console.error(`Error al eliminar el descuento o la imagen para el descuento con ID ${savedDiscount._id}`, error);
+            }
+          }, 30 * 60 * 1000); // 30 minutos en milisegundos
+        }
+
         res.status(200).json({ message: "El descuento se guardó exitosamente." });
       } catch (dbError) {
         console.error("Error al guardar el descuento en la base de datos:", dbError);

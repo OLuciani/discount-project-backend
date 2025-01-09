@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
     originalEmail: { type: String, required: false },
     password: String,
     role: String,
+    subRole: String,
     status: { type: String, enum: ["pending", "active", "rejected", "suspend"], default: "pending" },
     notifications: [notificationSchema], // Aquí añadimos el array de notificaciones, que sigue la estructura del subesquema `notificationSchema`
     firebaseUID: { type: String, required: true }, // Agrego el UID de Firebase

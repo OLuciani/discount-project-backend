@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true })); //Antes de configurar el middle
 app.use(express.json());
 
 // Middleware para habilitar CORS
-app.use(cors({
+/* app.use(cors({
   //origin: 'http://localhost:8081',
   origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -37,7 +37,20 @@ app.options('*', cors({
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
-}));
+})); */
+const corsOptions = {
+  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'], // URLs permitidas
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'], // Métodos HTTP permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'], // Cabeceras permitidas
+  credentials: true, // Permite enviar cookies y credenciales
+};
+
+// Middleware para habilitar CORS
+app.use(cors(corsOptions));
+
+// Manejo de preflight requests (opcional)
+app.options('*', cors(corsOptions));
+
 
 app.use(methodOverride('_method', {
   methods: ['POST', 'GET', 'PUT', 'PATCH', 'DELETE']

@@ -661,12 +661,12 @@ const controller = {
     }
   },
   //Este andaba barbaro 
-  user_update: async (req, res) => {
+  /* user_update: async (req, res) => {
     const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
  
     console.log("Valor de userId en user_update: ", userId);
 
-    const { name, lastName, phone/* , businessType, businessName */ } = req.body;
+    const { name, lastName, phone } = req.body;
 
     try {
       console.log("Datos recibidos para actualizar usuario:", req.body);
@@ -693,218 +693,55 @@ const controller = {
       console.error("Error al actualizar el usuario:", error);
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
+  }, */
+  //este controller tiene configurado para que no deje modificar a un usuario con subRole "visit_user"
+  user_update: async (req, res) => {
+    const { userId, subRole } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
+ 
+    console.log("Valor de userId en user_update: ", userId); 
+
+    const subRole_user = process.env.SUBROLE_VISIT_USER;
+
+    console.log("Valor de subRole en el controller user_update: ", subRole);
+
+    console.log("Valor de subRole_user en el controller user_update:", subRole_user);
+
+    if (subRole !== subRole_user) {
+
+      const { name, lastName, phone } = req.body;
+  
+      try {
+        console.log("Datos recibidos para actualizar usuario:", req.body);
+  
+        const updateData = {};
+        if (name) updateData.name = name;
+        if (lastName) updateData.lastName = lastName;
+        if (phone) updateData.phone = phone;
+        //if (businessType) updateData.businessType = businessType;
+        //if (businessName) updateData.businessName = businessName;
+  
+        const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+          new: true,
+        });
+  
+        if (!updatedUser) {
+          console.log("Usuario no encontrado:", userId);
+          return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+  
+        console.log("Usuario actualizado correctamente:", updatedUser);
+        res.json({ message: "Usuario actualizado correctamente", updatedUser });
+      } catch (error) {
+        console.error("Error al actualizar el usuario:", error);
+        res.status(500).json({ error: "Error al actualizar el usuario" });
+      }
+    } else {
+      // Respuesta cuando el subRole es "visit_user"
+      return res.status(403).json({
+        error: "Acción no permitida: los usuarios con el subRole 'visit_user' no pueden modificar su cuenta."
+      });
+    } 
   },
-  /* login: async (req, res) => {
-    const { email, password } = req.body;
-
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log("Errores de validación:", errors.array());
-      return res.status(400).json({
-        code: "VALIDATION_ERROR",
-        message: "Errores de validación",
-        errors: errors.array(),
-      });
-    }
-
-    try {
-      const normalizedEmail = email.toLowerCase();
-
-      console.log("Intentando iniciar sesión con:", normalizedEmail);
-
-      // **Paso 1: Verificar credenciales en Firebase**
-      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
-
-      try {
-
-        // Intentar autenticar el password del usuario en Firebase
-        const customToken = await admin
-          .auth()
-          .createCustomToken(firebaseUser.uid);
-
-        console.log("Usuario autenticado en Firebase:", firebaseUser.email);
-      } catch (firebaseError) {
-        console.error("Error en Firebase:", firebaseError.message);
-        return res.status(401).json({
-          code: "FIREBASE_AUTH_ERROR",
-          message: "Error de autenticación en Firebase",
-        });
-      }
-
-      // Verificar usuario en MongoDB
-      const user = await User.findOne({ email: normalizedEmail });
-
-      //if (!user) {
-        //console.log("Usuario no registrado:", normalizedEmail);
-       // return res
-         // .status(401)
-          //.json({ code: "USER_NOT_FOUND", message: "Usuario no registrado" });
-      //}
-
-      if (!user || user.firebaseUID !== firebaseUser.uid) {
-        return res.status(401).json({ message: "Autenticación fallida" });
-      }
-  
-      // Validar contraseña en MongoDB
-      const isPasswordValid = bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-        return res
-          .status(401)
-          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
-      }
-
-      // Genero y configuro token
-      const token = jwt.sign(
-        { userId: user._id, businessId: user.businessId, role: user.role, businessName: user.businessName, accountCreator: user.accountCreator },
-        process.env.AUTH_SECRET,
-        { expiresIn: "15m" }
-      );
-
-      console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-
-      //Configuación que utilizo para desarrollo
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: false, // `false` en desarrollo
-        sameSite: "Strict", // `Lax` en desarrollo
-        maxAge: 15 * 60 * 1000, // 15 minutos
-      });
-
-      //Configuación que utilizo para producción
-      //res.cookie('token', token, {
-        //httpOnly: true,
-        //secure: true, // `true` en producción
-        //sameSite: 'None', // `None` en producción
-        //maxAge: 15 * 60 * 1000, // 15 minutos
-        //path: '/',  //Esta linea la agruegué 
-      //});
-
-      res.json({
-        message: "Inicio de sesión exitoso",
-        success: true,
-        token, //Lo agregué para probar la aplicacion movil(ver si hay que sacarlo)
-      });
-    } catch (error) {
-      console.error("Error en el proceso de autnticación:", error);
-      res.status(500).json({
-        code: "AUTHENTICATION_ERROR",
-        message: "Error en la autenticación",
-      });
-    }
-  }, */
-  /* login: async (req, res) => {
-    const { email, password, isMobileUser, secret_key } = req.body;
-
-    console.log("Valor de isMobileUser: ", isMobileUser);
-    console.log("Valor de secret_key: ", secret_key);
-
-    const showToken = false;
-
-    const app_mobile_secret = process.env.APP_MOBILE_SECRET;
-
-    if(secret_key === app_mobile_secret && isMobileUser) {
-      showToken = true; 
-    }
-  
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      console.log("Errores de validación:", errors.array());
-      return res.status(400).json({
-        code: "VALIDATION_ERROR",
-        message: "Errores de validación",
-        errors: errors.array(),
-      });
-    }
-  
-    try {
-      const normalizedEmail = email.toLowerCase();
-  
-      console.log("Intentando iniciar sesión con:", normalizedEmail);
-  
-      // Verificar credenciales en Firebase
-      const firebaseUser = await admin.auth().getUserByEmail(normalizedEmail);
-  
-      try {
-        await admin.auth().createCustomToken(firebaseUser.uid);
-        console.log("Usuario autenticado en Firebase:", normalizedEmail);
-      } catch (firebaseError) {
-        console.error("Error en Firebase:", firebaseError.message);
-        return res.status(401).json({
-          code: "FIREBASE_AUTH_ERROR",
-          message: "Error de autenticación en Firebase",
-        });
-      }
-  
-      // Verificar usuario en MongoDB
-      const user = await User.findOne({ email: normalizedEmail });
-      if (!user || user.firebaseUID !== firebaseUser.uid) {
-        return res.status(401).json({ message: "Autenticación fallida" });
-      }
-  
-      // Validar contraseña
-       //const isPasswordValid = await bcrypt.compare(password, user.password);
-      //if (!isPasswordValid) {
-        //console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-       // return res
-         // .status(401)
-          //.json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
-      //} 
-
-      const isPasswordValid = await compareAsync(password, user.password);
-      if (!isPasswordValid) {
-        console.log("Contraseña incorrecta para el usuario:", normalizedEmail);
-        return res
-          .status(401)
-          .json({ code: "INVALID_PASSWORD", message: "Contraseña incorrecta" });
-      }
-  
-      // Generar token
-      const token = jwt.sign(
-        {
-          userId: user._id,
-          businessId: user.businessId,
-          role: user.role,
-          businessName: user.businessName,
-          accountCreator: user.accountCreator,
-        },
-        process.env.AUTH_SECRET,
-        { expiresIn: "15m" }
-      );
-  
-      console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
-  
-      //Configuación que utilizo para desarrollo
-      // res.cookie("token", token, {
-        //httpOnly: true,
-       // secure: false, // `false` en desarrollo
-        //sameSite: "Strict", // `Lax` en desarrollo
-       // maxAge: 15 * 60 * 1000, // 15 minutos
-      //}); 
-
-      //Configuación que utilizo para producción
-      res.cookie('token', token, {
-        httpOnly: true,
-        secure: true, // `true` en producción
-        sameSite: 'None', // `None` en producción
-        maxAge: 15 * 60 * 1000, // 15 minutos
-        path: '/',  //Esta linea la agruegué 
-      });
-  
-      res.json({
-        message: "Inicio de sesión exitoso",
-        success: true,
-        token: showToken ? token : null
-      });
-    } catch (error) {
-      console.error("Error en el proceso de autenticación:", error);
-      res.status(500).json({
-        code: "AUTHENTICATION_ERROR",
-        message: "Error en la autenticación",
-        error: process.env.NODE_ENV === "development" ? error.message : undefined,
-      });
-    }
-  }, */
   login: async (req, res) => {
     const { email, password, isMobileUser, secret_key } = req.body;
   
@@ -969,6 +806,7 @@ const controller = {
           userId: user._id,
           businessId: user.businessId,
           role: user.role,
+          subRole: user.subRole || null, 
           businessName: user.businessName,
           accountCreator: user.accountCreator,
         },
@@ -979,10 +817,10 @@ const controller = {
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
 
       //Configuación que utilizo para desarrollo
-      /*  res.cookie("token", token, {
+       /* res.cookie("token", token, {
        httpOnly: true,
        secure: false, // `false` en desarrollo
-       sameSite: "Strict", // `Lax` en desarrollo
+       sameSite: "Strict", // `Podría usar Lax` en desarrollo
        maxAge: 15 * 60 * 1000, // 15 minutos
       }); */
   
@@ -1056,12 +894,15 @@ const controller = {
       if(businessId) {
         const business = await Business.findById(businessId);
 
+        let subRoleDb = user.subRole;
+
         res.json({
           userRole: roleType,
           userName: user.name,
           businessName: business.businessName,
           businessType: business.businessType,
-          userStatus: user.status
+          userStatus: user.status,
+          userSubRole: subRoleDb && "visit_user" || null
         });
       } else {
         res.json({
@@ -1514,9 +1355,9 @@ const controller = {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
     // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
-    if (req.user.email !== email) {
+    /* if (req.user.email !== email) {
       return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
-    }
+    } */
 
     console.log("Valor de email: ", email);
     console.log("Valor de businessId: ", businessId);
