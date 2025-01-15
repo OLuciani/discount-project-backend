@@ -82,8 +82,8 @@ async function connectToDatabase() {
   try {
     const URI_MONGO_DB = process.env.URL_MONGODB_SECRET;
     await mongoose.connect(URI_MONGO_DB, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      //useNewUrlParser: true,
+      //useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000, // 30 segundos de timeout
       socketTimeoutMS: 45000,          // 45 segundos de timeout en los sockets
     });
