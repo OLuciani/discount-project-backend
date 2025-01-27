@@ -962,29 +962,34 @@ const controller = {
       const user = await User.findOne({ email });
 
       if (!user) {
+        res.json({
+          success: false,
+        });
         console.log(
           "Usuario no encontrado en la base de datos, pero se enviará el correo de restablecimiento de contraseña."
         );
+      } else {
+
+        const token = jwt.sign(
+          { email: user.email },
+          process.env.RESET_TOKEN_SECRET,
+          {
+            expiresIn: "15m",
+          }
+        );
+  
+        await sendMongoEmail(email, token);
+        console.log("Correo electrónico de restablecimiento enviado a:", email);
+  
+        res.json({
+          exists: !!user,
+          success: true,
+          message:
+            "Correo electrónico de restablecimiento de MongoDB enviado correctamente",
+          token,
+        });
       }
 
-      const token = jwt.sign(
-        { email: user.email },
-        process.env.RESET_TOKEN_SECRET,
-        {
-          expiresIn: "15m",
-        }
-      );
-
-      await sendMongoEmail(email, token);
-      console.log("Correo electrónico de restablecimiento enviado a:", email);
-
-      res.json({
-        exists: !!user,
-        success: true,
-        message:
-          "Correo electrónico de restablecimiento de MongoDB enviado correctamente",
-        token,
-      });
     } catch (error) {
       console.error("Error al enviar el correo electrónico de MongoDB:", error);
       res.status(500).json({ success: false, message: "Error en el servidor" });
