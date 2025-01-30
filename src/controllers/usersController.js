@@ -136,7 +136,7 @@ const sendInvitationExtraBusinessAdminUserEmail = async (email, token, businessI
 };
 
 
-// Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde  aplicación web.
+// Método para enviar correo electrónico desde el backend a usuarios para cambiar password desde aplicación web.
 const sendMongoEmail = async (email, token) => {
   try {
     //const resetLink = `http://localhost:8081/passwordReset?token=${token}&email=${email}`;
@@ -811,7 +811,7 @@ const controller = {
           accountCreator: user.accountCreator,
         },
         process.env.AUTH_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "1m" }
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
@@ -821,7 +821,7 @@ const controller = {
        httpOnly: true,
        secure: false, // `false` en desarrollo
        sameSite: "Strict", // `Podría usar Lax` en desarrollo
-       maxAge: 15 * 60 * 1000, // 15 minutos
+       maxAge: 2 * 60 * 1000, // 15 minutos
       }); */
   
       // Configuración para producción

@@ -14,6 +14,12 @@ const authenticateResetToken = (req, res, next) => {
       req.user = decoded;
       next();
     } catch (err) {
+      // Manejo específico del error de token expirado
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ 
+          message: "Token expired. Please log in again." 
+        });
+      }
         console.log("Error verificando token:", err); 
       res.status(400).json({ message: "Invalid or expired reset token" });
     }

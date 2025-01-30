@@ -48,7 +48,17 @@ const authenticateToken = (req, res, next) => {
     console.log("Valor de req.user en authenticateToken: ", req.user);
     next();
   } catch (err) {
-    res.status(400).json({ message: "Invalid token" });
+    /* res.status(400).json({ message: "Invalid token" }); */
+    // Manejo específico del error de token expirado
+    if (err.name === "TokenExpiredError") {
+      return res.status(401).json({ 
+        message: "Token expired. Please log in again." 
+      });
+    }
+    // Manejo de cualquier otro error
+    res.status(400).json({ 
+      message: "Invalid token" 
+    });
   }
 };
 
