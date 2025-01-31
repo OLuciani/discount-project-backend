@@ -137,7 +137,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cookieParser from "cookie-parser";
-import compression from "compression"; // Importar el middleware de compresión
+//import compression from "compression"; // Importar el middleware de compresión
 import { deactivateExpiredDiscounts } from "./controllers/offeredDiscountsController.js";
 import mongoose from "mongoose";
 
@@ -149,7 +149,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Middleware de compresión
-app.use(compression());
+//app.use(compression());
 
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(express.urlencoded({ extended: true }));
