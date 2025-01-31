@@ -811,7 +811,7 @@ const controller = {
           accountCreator: user.accountCreator,
         },
         process.env.AUTH_SECRET,
-        { expiresIn: "1m" }
+        { expiresIn: "15m" }
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
@@ -821,7 +821,7 @@ const controller = {
        httpOnly: true,
        secure: false, // `false` en desarrollo
        sameSite: "Strict", // `Podría usar Lax` en desarrollo
-       maxAge: 2 * 60 * 1000, // 15 minutos
+       maxAge: 15 * 60 * 1000, // 15 minutos
       }); */
   
       // Configuración para producción
