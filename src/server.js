@@ -1,4 +1,4 @@
-import express from "express";
+/* import express from "express";
 import path from "path";
 import cors from "cors";
 import methodOverride from "method-override";
@@ -113,8 +113,8 @@ app.use(BASE_API_PATH, checkAdminAppRoute);
 //app.use(BASE_API_PATH, dashboardRoute);
 
 
-const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
-//const PORT = 5050;
+//const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
+const PORT = 5050;
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
@@ -125,11 +125,11 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
+ */
 
 
 
-
-/* import express from "express";
+import express from "express";
 import path from "path";
 import cors from "cors";
 import methodOverride from "method-override";
@@ -241,4 +241,4 @@ app.listen(PORT, '0.0.0.0', () => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
-}); */
+});
