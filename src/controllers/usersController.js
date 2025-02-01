@@ -837,7 +837,7 @@ const controller = {
       res.cookie('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // `true` en producción
-        sameSite: 'None',
+        sameSite: 'Lax',
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/', // Accesible en toda la app
       });
