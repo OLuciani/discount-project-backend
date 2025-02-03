@@ -840,7 +840,7 @@ const controller = {
         sameSite: 'Lax',
         maxAge: 15 * 60 * 1000, // 15 minutos
         path: '/', // Accesible en toda la app
-        domain: 'discount-project-web.vercel.app',
+        //domain: 'discount-project-web.vercel.app',
       });
   
       res.json({
