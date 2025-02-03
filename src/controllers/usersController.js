@@ -838,7 +838,7 @@ const controller = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // `true` en producción
         sameSite: 'Lax',
-        maxAge: 2 * 60 * 1000, // 15 minutos
+        maxAge: 30* 60 * 1000, // 30 minutos
         path: '/', // Accesible en toda la app
         //domain: 'discount-project-web.vercel.app',
       });
