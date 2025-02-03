@@ -811,7 +811,7 @@ const controller = {
           accountCreator: user.accountCreator,
         },
         process.env.AUTH_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "2m" }
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
@@ -838,7 +838,7 @@ const controller = {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production', // `true` en producción
         sameSite: 'Lax',
-        maxAge: 15 * 60 * 1000, // 15 minutos
+        maxAge: 2 * 60 * 1000, // 15 minutos
         path: '/', // Accesible en toda la app
         //domain: 'discount-project-web.vercel.app',
       });
