@@ -811,7 +811,7 @@ const controller = {
           accountCreator: user.accountCreator,
         },
         process.env.AUTH_SECRET,
-        { expiresIn: "2m" }
+        { expiresIn: "15m" }
       );
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
