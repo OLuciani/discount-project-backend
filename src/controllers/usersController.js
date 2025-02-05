@@ -493,7 +493,9 @@ const controller = {
         originalEmail: email,
         password: hashedPassword,
         role: roleMobileCustomer,
+        status: "active",
         firebaseUID: firebaseUser.uid,
+        
       });
 
       await newUser.save();
