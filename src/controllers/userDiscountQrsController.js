@@ -51,6 +51,7 @@ const controller = {
       discountTitle,
       normalPrice,
       priceWithDiscount,
+      imageURL,
       businessId,
       businessName,
       userEmail,
@@ -74,6 +75,7 @@ const controller = {
       offeredDiscountId: offeredDiscountId,
       normalPrice: Number(normalPrice), // Convertir a número de manera segura
       priceWithDiscount: Number(priceWithDiscount), // Convertir a número de manera segura
+      imageURL: imageURL,
       createdAt: createdAt,
       expirationDate: expirationDate,
     });
@@ -99,7 +101,8 @@ const controller = {
       });
   },
   userDiscountQrs_oneDiscount: (req, res) => {
-    const discountId = req.params._id;
+    const userScannerId = req.user.businessId; // ID del negocio del usuario que escanea
+    const discountId = req.params._id; // ID del descuento escaneado
 
     UserDiscountQr.findById(discountId)
       .then((discountFound) => {
@@ -107,7 +110,12 @@ const controller = {
           // Si no se encontró el descuento, responde con un error 404 y un mensaje descriptivo
           return res.status(404).json({ error: "Descuento no encontrado" });
         }
-        // Si se encuentra el descuento, envía el descuento encontrado en la respuesta
+
+        if (userScannerId !== discountFound.businessId) {
+          return res.status(403).json({ error: "No tienes permiso para validar este descuento." });
+        }
+
+        // Si el usuario pertenece al negocio que creó el descuento, lo enviamos
         res.json(discountFound);
       })
       .catch((error) => {
@@ -115,7 +123,7 @@ const controller = {
         console.error("Error al buscar el descuento con el id: ", error);
         res
           .status(500)
-          .json({ error: "Error al buscar el descuento con el id." });
+          .json({ error: "Error interno del servidor." });
       });
   },
   userDiscountQrs_update: (req, res) => {

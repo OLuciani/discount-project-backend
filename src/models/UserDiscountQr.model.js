@@ -32,6 +32,7 @@ const userDiscountQrSchema = mongoose.Schema({
     //discountPrice: Number,
     normalPrice: Number,
     priceWithDiscount: Number,
+    imageURL: String,
     createdAt: { type: Date, default: Date.now },
     isValid: { type: Boolean, default: true }, 
     isUsed: { type: Boolean, default: false }, 

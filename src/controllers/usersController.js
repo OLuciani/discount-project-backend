@@ -257,63 +257,7 @@ const controller = {
       );
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
-  },
-  //Este controller de user_register anda perfecto pero el usuario se registra en firebase desde el frontend
-  /* user_register: async (req, res) => {
-    const {
-      name,
-      lastName,
-      phone,
-      email,
-      password,
-      businessId,
-    } = req.body;
-
-    try {
-      const normalizedEmail = email.toLowerCase();
-
-      console.log("Datos recibidos para registro:", req.body);
-
-      let existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
-        console.log(
-          "El correo electrónico ya está registrado:",
-          normalizedEmail
-        );
-        return res
-          .status(400)
-          .json({ error: "El correo electrónico ya está registrado" });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR;
-
-      const newUser = new User({
-        name,
-        lastName,
-        businessId,
-        phone,
-        email: normalizedEmail,
-        originalEmail: email,
-        password: hashedPassword,
-        role: roleBusinessDirector,
-      });
-
-      await newUser.save();
-      console.log("Nuevo usuario registrado:", newUser);
-
-      res.json({
-        message: "Registro exitoso como usuario",
-        _id: newUser._id,
-        name: newUser.name,
-        lastName: newUser.lastName,
-      });
-    } catch (error) {
-      console.error("Error en el registro:", error);
-      res.status(500).json({ error: "Error en el registro" });
-    }
-  }, */ 
+  }, 
   user_register: async (req, res) => {
     const { name, lastName, phone, email, password, businessName, businessId } = req.body;
     
@@ -387,55 +331,6 @@ const controller = {
       res.status(500).json({ error: "Error en el registro" });
     }
   },
-  //Este registro para user de app movil funciona bien pero no tiene el registro en firebase aqui en el backend
-  /* user_register_mobile: async (req, res) => {
-    const {
-      email,
-      password,
-    } = req.body;
-
-    try {
-      const normalizedEmail = email.toLowerCase();
-
-      console.log("Datos recibidos para registro:", req.body);
-
-      let existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
-        console.log(
-          "El correo electrónico ya está registrado:",
-          normalizedEmail
-        );
-        return res
-          .status(400)
-          .json({ error: "El correo electrónico ya está registrado" });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const roleMobileCustomer = process.env.ROLE_MOBILE_CUSTOMER;
-
-      const newUser = new User({
-        email: normalizedEmail,
-        originalEmail: email,
-        password: hashedPassword,
-        role: roleMobileCustomer,
-      });
-
-      await newUser.save();
-      console.log("Nuevo usuario registrado:", newUser);
-
-      res.json({
-        message: "Registro exitoso como usuario",
-        _id: newUser._id,
-        name: newUser.name,
-        lastName: newUser.lastName,
-      });
-    } catch (error) {
-      console.error("Error en el registro:", error);
-      res.status(500).json({ error: "Error en el registro" });
-    }
-  }, */
-  //Este registro lo creé para que se registre en firebase desdea aqui desde el backend. Falta modificar en la aplicacion móvil en react native eliminando el registro en firebase. El controller anterior funcionaba bien con el registro en firebase configurado en el frontend en la app móvil.
   user_register_mobile: async (req, res) => {
     const {
       email,
@@ -576,58 +471,6 @@ const controller = {
       res.status(500).json({ message: "Error al obtener usuarios" });
     }
   },   
-  /* all_users_list: async (req, res) => {
-    try {
-      // Extraer parámetros del request
-      const { role, page = 1, limit = 10 } = req.query;
-  
-      // Preparar filtro de búsqueda
-      let query = {};
-      if (role && role !== "Todos los Usuarios") {
-        // Mapear roles del frontend a los valores reales en la base de datos
-        const roleMapping = {
-          "Admin del Sistema": process.env.ROLE_SYSTEM_ADMIN,
-          "Admin del Negocio": process.env.ROLE_BUSINESS_ADMIN,
-          Usuario: process.env.ROLE_USER,
-        };
-        const mappedRole = roleMapping[role];
-  
-        if (mappedRole) {
-          query.role = mappedRole;
-        } else {
-          return res.status(400).json({ message: "Rol no válido" });
-        }
-      }
-  
-      // Cálculo de paginación
-      const pageNumber = Number(page); // Página actual
-      const limitNumber = Number(limit); // Límite de usuarios por página
-      const skip = (pageNumber - 1) * limitNumber; // Usuarios a omitir
-  
-      // Obtener usuarios filtrados y paginados
-      const users = await User.find(query)
-        .skip(skip)
-        .limit(limitNumber);
-  
-      // Contar el total de usuarios que cumplen el filtro
-      const totalUsers = await User.countDocuments(query);
-  
-      // Calcular el total de páginas
-      const totalPages = Math.ceil(totalUsers / limitNumber);
-  
-      // Responder con los usuarios y datos de paginación
-      res.status(200).json({
-        users,
-        totalUsers,
-        totalPages,
-      });
-    } catch (error) {
-      console.error("Error al obtener la lista de usuarios:", error);
-      res.status(500).json({
-        message: "Error al obtener usuarios. Por favor, inténtalo de nuevo más tarde.",
-      });
-    }
-  }, */
   businessId_and_businessType_update: async (req, res) => {
     const userId = req.params._id;
     const { businessId, businessType, pdfBusinessRegistration } = req.body;
@@ -662,40 +505,6 @@ const controller = {
       res.status(500).json({ error: "Error al actualizar el usuario" });
     }
   },
-  //Este andaba barbaro 
-  /* user_update: async (req, res) => {
-    const { userId } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
- 
-    console.log("Valor de userId en user_update: ", userId);
-
-    const { name, lastName, phone } = req.body;
-
-    try {
-      console.log("Datos recibidos para actualizar usuario:", req.body);
-
-      const updateData = {};
-      if (name) updateData.name = name;
-      if (lastName) updateData.lastName = lastName;
-      if (phone) updateData.phone = phone;
-      //if (businessType) updateData.businessType = businessType;
-      //if (businessName) updateData.businessName = businessName;
-
-      const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
-        new: true,
-      });
-
-      if (!updatedUser) {
-        console.log("Usuario no encontrado:", userId);
-        return res.status(404).json({ error: "Usuario no encontrado" });
-      }
-
-      console.log("Usuario actualizado correctamente:", updatedUser);
-      res.json({ message: "Usuario actualizado correctamente", updatedUser });
-    } catch (error) {
-      console.error("Error al actualizar el usuario:", error);
-      res.status(500).json({ error: "Error al actualizar el usuario" });
-    }
-  }, */
   //este controller tiene configurado para que no deje modificar a un usuario con subRole "visit_user"
   user_update: async (req, res) => {
     const { userId, subRole } = req.user; // Extraigo userId del objeto req.user (del token de la cookie).
@@ -1311,63 +1120,6 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  /* create_business_employee_user: async (req, res) => {
-    const { name, lastName, email, phone, password, businessId} = req.body;
-
-    // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
-    if (req.user.email !== email) {
-      return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
-    }
-
-    console.log("Valor de email: ", email);
-    console.log("Valor de businessId: ", businessId);
-
-    try {
-      const normalizedEmail = email.toLowerCase();
-
-      console.log("Datos recibidos para registro del userQrScanner:", req.body);
-
-      let existingUser = await User.findOne({ email: normalizedEmail });
-      if (existingUser) {
-        console.log(
-          "El correo electrónico ya está registrado:",
-          normalizedEmail
-        );
-        return res
-          .status(400)
-          .json({ error: "El correo electrónico ya está registrado" });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
-
-      const newUser = new User({
-        name,
-        lastName,
-        businessId,
-        email: normalizedEmail,
-        originalEmail: email,
-        phone: phone,
-        password: hashedPassword,
-        role: roleBusinessEmployee,
-        status: "active",
-      });
-
-      await newUser.save();
-      console.log("Nuevo usuario con acceso a scanner en aplicación movil registrado:", newUser);
-
-      res.json({
-        message: "Registro exitoso como usuario con acceso a scanner en aplicación movil.",
-        _id: newUser._id,
-        name: newUser.name,
-        lastName: newUser.lastName,
-      });
-    } catch (error) {
-      console.error("Error en el registro de usuario con acceso a scanner en aplicación movil:", error);
-      res.status(500).json({ error: "Error en el registro de usuario con acceso a scanner en aplicación movil" });
-    }
-  }, */
   create_business_employee_user: async (req, res) => {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
@@ -1502,70 +1254,6 @@ const controller = {
       res.status(500).json({ success: false, message: "Error en el servidor" });
     }
   },
-  /* create_extra_business_admin_user: async (req, res) => {
-    const { name, lastName, email, phone, password, businessId} = req.body;
-
-    const asociateBusiness = await Business.findById(businessId) // Busco el negocio por su ID
-      
-    if (asociateBusiness) {
-
-      // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
-      if (req.user.email !== email) {
-        return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
-      }
-  
-      console.log("Valor de email: ", email);
-      console.log("Valor de businessId: ", businessId);
-  
-      try {
-        const normalizedEmail = email.toLowerCase();
-  
-        console.log("Datos recibidos para registro del usuario administrador de cuenta de negocio extra:", req.body);
-  
-        let existingUser = await User.findOne({ email: normalizedEmail });
-        if (existingUser) {
-          console.log(
-            "El correo electrónico ya está registrado:",
-            normalizedEmail
-          );
-          return res
-            .status(400)
-            .json({ error: "El correo electrónico ya está registrado" });
-        }
-  
-        const hashedPassword = await bcrypt.hash(password, 10);
-  
-        const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
-  
-        const newUser = new User({
-          name,
-          lastName,
-          email: normalizedEmail,
-          originalEmail: email,
-          phone: phone,
-          password: hashedPassword,
-          businessId,
-          //businessName: asociateBusiness.businessName,
-          //businessType: asociateBusiness.businessType,
-          role: roleBusinessManager,
-          status: "active",
-        });
-  
-        await newUser.save();
-        console.log("Nuevo usuario administrador de cuenta de negocio extra registrado exitosamente:", newUser);
-  
-        res.json({
-          message: "Registro exitoso como usuario administrador de cuenta de negocio extra.",
-          _id: newUser._id,
-          name: newUser.name,
-          lastName: newUser.lastName,
-        });
-      } catch (error) {
-        console.error("Error en el registro de usuario administrador de cuenta de negocio extra:", error);
-        res.status(500).json({ error: "Error en el registro de usuario administrador de cuenta de negocio extra" });
-      }
-    }
-  }, */
   create_extra_business_admin_user: async (req, res) => {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
