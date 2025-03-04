@@ -110,7 +110,7 @@ const controller = {
 
       const now = new Date();
       //const startDateTime = now;
-      const startDateTime = new Date(now.getTime() - 3 * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
+      const startDateTime = new Date(now.getTime() * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
 
       const durationDays = validityPeriod ? Number(validityPeriod) : null;
       let expirationDate = durationDays
@@ -299,7 +299,7 @@ const controller = {
       if (validityPeriod) {
         now = new Date();
         //newStartDateTime = now;
-        newStartDateTime = new Date(now.getTime() - 3 * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
+        newStartDateTime = new Date(now.getTime() * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
         newDurationDays = Number(validityPeriod);
         newExpirationDate = new Date(newStartDateTime.getTime() + newDurationDays * 24 * 60 * 60 * 1000);
   
