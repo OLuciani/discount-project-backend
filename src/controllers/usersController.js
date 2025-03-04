@@ -627,8 +627,8 @@ const controller = {
   
       console.log("Inicio de sesión exitoso para el usuario:", normalizedEmail);
 
-      //Configuación que utilizo para desarrollo
-       /* res.cookie("token", token, {
+      /* //Configuación que utilizo para desarrollo
+       res.cookie("token", token, {
        httpOnly: true,
        secure: false, // `false` en desarrollo
        sameSite: "Strict", // `Podría usar Lax` en desarrollo

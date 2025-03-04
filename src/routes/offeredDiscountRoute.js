@@ -12,19 +12,15 @@ const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
 const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;
 
 
-
-//router.post("/discount_create", authenticateToken, upload.single("imageURL"), processImage, offeredDiscountsController.discount_create);
 router.post("/discount_create", authenticateToken, upload, processFiles, offeredDiscountsController.discount_create);
 
 router.get("/discounts_list", offeredDiscountsController.discounts_list);
 
-//router.get("/discounts_list_one_business/:_id", authenticateToken, offeredDiscountsController.discounts_list_one_business);
 router.get("/discounts_list_one_business", authenticateToken, authorizeRole([roleBusinessDirector, roleBusinessManager, roleBusinessEmployee]), offeredDiscountsController.discounts_list_one_business);
 
 router.get("/discount_detail/:_id", authenticateToken, offeredDiscountsController.discount_detail);
 
-//router.patch("/discount_update/:_id", authenticateToken, authorizeRole([roleAdminWeb]), upload.single("imageURL"), processImage, offeredDiscountsController.discount_update);
-router.patch("/discount_update/:_id", authenticateToken, authorizeRole([roleBusinessDirector, roleBusinessManager]), upload, processFiles, offeredDiscountsController.discount_update);
+router.patch("/discount_update/:_id", authenticateToken, authorizeRole([roleBusinessDirector, roleBusinessManager, roleBusinessEmployee]), upload, processFiles, offeredDiscountsController.discount_update);
 
 router.patch("/discount_update_generateDiscounts/:_id", authenticateToken, offeredDiscountsController.discount_update_generatedDiscounts);
 
@@ -34,6 +30,5 @@ offeredDiscountsController.discount_update_usedDiscounts);
 router.patch("/discount_update_viewsDiscounts/:_id", offeredDiscountsController.discount_update_viewsDiscounts);
 
 router.delete("/discount_delete/:_id", authenticateToken, offeredDiscountsController.discount_delete);
-
 
 export default router;
