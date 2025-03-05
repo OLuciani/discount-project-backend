@@ -21,7 +21,8 @@ const offeredDiscountSchema = mongoose.Schema({
     default: null,
   },
   startDateTime: { type: Date }, // Fecha y hora de inicio del descuento (opcional)
-  durationDays: { type: Number }, // Duración en días del descuento (opcional)
+  //durationDays: { type: Number }, // Duración en días del descuento (opcional)
+  durationDays: { type: Number, default: null },
   expirationDate: {
     type: Date,
     default: function () {

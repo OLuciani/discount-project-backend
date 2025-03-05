@@ -56,9 +56,9 @@ const controller = {
         businessLocationLatitude,
         businessLocationLongitude,
       } = req.body;
-
+  
       console.log("Datos recibidos en discount_create:", req.body);
-
+  
       // Validar campos requeridos
       const requiredFields = [
         "businessName",
@@ -77,25 +77,24 @@ const controller = {
           console.error(`Falta el campo ${field} en req.body`);
         }
       });
-
+  
       console.log("Contenido de req.files:", req.files);
       if (!req.files || !req.files.imageURL) {
         console.error("No se encontró imageURL en req.files");
       }
-
+  
       const imageUrl = req.files.imageURL
         ? req.files.imageURL[0].firebaseUrl
         : null;
-
+  
       console.log("Contenido de req.user:", req.user);
       if (!req.user || !req.user.businessId) {
         console.error("Falta el campo businessId en req.user");
         return res.status(400).json({ error: "Falta el campo businessId." });
       }
-
-
-      // 💡 **Corrección aquí: Convertimos desde string a Decimal y luego aFixed(2)**
-      const normalPriceNumber = new Decimal(normalPrice).toFixed(2);  
+  
+      // 💡 Corrección: Convertir a Decimal y redondear correctamente
+      const normalPriceNumber = new Decimal(normalPrice).toFixed(2);
       const discountAmountNumber = new Decimal(discountAmount).toFixed(2);
   
       // Verificación de valores
@@ -103,41 +102,35 @@ const controller = {
         return res.status(400).json({ error: "Valores inválidos para precios o descuento." });
       }
   
-      // 💡 **Corrección aquí: Evitamos errores de redondeo en la multiplicación**
+      // 💡 Corrección: Evitar errores de redondeo en la multiplicación
       const newPrice = new Decimal(normalPriceNumber)
         .times(new Decimal(1).minus(new Decimal(discountAmountNumber).div(100)))
-        .toFixed(2); 
-
-      const now = new Date();
-      //const startDateTime = now;
-      const startDateTime = new Date(now.getTime() * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
-
+        .toFixed(2);
+  
+      // Guardar la fecha en UTC sin modificarla manualmente
+      const startDateTime = new Date();
+  
       const durationDays = validityPeriod ? Number(validityPeriod) : null;
       let expirationDate = durationDays
-        //? new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000)
         ? new Date(startDateTime.getTime() + durationDays * 24 * 60 * 60 * 1000)
         : null;
-
+  
       // Si el subRole del usuario es "visit_user", establecer un tiempo de expiración de 30 minutos
       const { subRole } = req.user;
       const subRole_user = process.env.SUBROLE_VISIT_USER;
-
+  
       if (subRole === subRole_user) {
-        //expirationDate = new Date(now.getTime() + 30 * 60 * 1000); // 30 minutos
         expirationDate = new Date(startDateTime.getTime() + 30 * 60 * 1000); // 30 minutos
       }
-
+  
       const newOfferedDiscount = new OfferedDiscount({
         businessName,
         businessId: req.user.businessId,
         businessType,
         title,
         description,
-        //normalPrice: normalPriceNumber.toNumber(),
-        //priceWithDiscount: savedDiscountedPrice,
-        //discountAmount: discountAmountNumber.toNumber(),
-        normalPrice: Number(normalPriceNumber), // 💡 **Guardarlo ya redondeado**
-        priceWithDiscount: Number(newPrice), 
+        normalPrice: Number(normalPriceNumber), // 💡 Guardarlo ya redondeado
+        priceWithDiscount: Number(newPrice),
         discountAmount: Number(discountAmountNumber),
         imageURL: imageUrl,
         validityPeriod: durationDays,
@@ -148,28 +141,24 @@ const controller = {
         businessLocationLatitude: parseFloat(businessLocationLatitude),
         businessLocationLongitude: parseFloat(businessLocationLongitude),
       });
-
-      //Guardar el descuento en la base de datos
+  
+      // Guardar el descuento en la base de datos
       try {
         const savedDiscount = await newOfferedDiscount.save();
         console.log("Descuento guardado exitosamente:", savedDiscount);
-
+  
         // Si el descuento es creado por un usuario con subRole "visit_user", programar su eliminación después de 30 minutos
         if (subRole === subRole_user) {
           setTimeout(async () => {
             try {
-              // Eliminar descuento de la base de datos
               await OfferedDiscount.findByIdAndDelete(savedDiscount._id);
               console.log(
                 `Descuento con ID ${savedDiscount._id} eliminado automáticamente después de 30 minutos.`
               );
-
-              // Eliminar la imagen de Firebase (si existe)
+  
               if (savedDiscount.imageURL) {
-                await deleteImageFromFirebase(savedDiscount.imageURL); // Eliminar la imagen
-                console.log(
-                  `Imagen eliminada con éxito: ${savedDiscount.imageURL}`
-                );
+                await deleteImageFromFirebase(savedDiscount.imageURL);
+                console.log(`Imagen eliminada con éxito: ${savedDiscount.imageURL}`);
               }
             } catch (error) {
               console.error(
@@ -179,15 +168,10 @@ const controller = {
             }
           }, 30 * 60 * 1000); // 30 minutos en milisegundos
         }
-
-        res
-          .status(200)
-          .json({ message: "El descuento se guardó exitosamente." });
+  
+        res.status(200).json({ message: "El descuento se guardó exitosamente." });
       } catch (dbError) {
-        console.error(
-          "Error al guardar el descuento en la base de datos:",
-          dbError
-        );
+        console.error("Error al guardar el descuento en la base de datos:", dbError);
         res.status(500).json({
           error: "Error al guardar el descuento en la base de datos.",
         });
@@ -251,7 +235,7 @@ const controller = {
       });
   },
   discount_update: async (req, res) => {
-    const { businessId } = req.user; 
+    const { businessId } = req.user;
     try {
       const { _id } = req.params;
       const {
@@ -264,50 +248,60 @@ const controller = {
         validityPeriod,
         isActive,
       } = req.body;
-  
+
       console.log("VALOR DE NORMALPRICE DESDE EL FRONTEND: ", normalPrice, "Tipo:", typeof normalPrice);
       console.log("VALOR DE DISCOUNTAMOUNT DESDE EL FRONTEND: ", discountAmount, "Tipo:", typeof discountAmount);
-  
+
       let imageURL = "";
       const existingDiscount = await OfferedDiscount.findById(_id);
       if (existingDiscount) {
         imageURL = existingDiscount.imageURL;
       }
-  
-      const newImageURL = req.files.imageURL ? req.files.imageURL[0].firebaseUrl : null;
+
+      const newImageURL = req.files?.imageURL ? req.files.imageURL[0].firebaseUrl : null;
       if (newImageURL) {
         imageURL = newImageURL;
       }
-  
+
       const isActiveBoolean = isActive === "true";
-  
-      // 💡 **Corrección aquí: Convertimos desde string a Decimal y luego aFixed(2)**
-      const normalPriceNumber = new Decimal(normalPrice).toFixed(2);  
+
+      // Asegurar que los valores de precios sean números válidos
+      const normalPriceNumber = new Decimal(normalPrice).toFixed(2);
       const discountAmountNumber = new Decimal(discountAmount).toFixed(2);
-  
-      // Verificación de valores
+
       if (isNaN(normalPriceNumber) || isNaN(discountAmountNumber)) {
         return res.status(400).json({ error: "Valores inválidos para precios o descuento." });
       }
-  
-      // 💡 **Corrección aquí: Evitamos errores de redondeo en la multiplicación**
+
+      // Cálculo del precio con descuento
       const newPrice = new Decimal(normalPriceNumber)
         .times(new Decimal(1).minus(new Decimal(discountAmountNumber).div(100)))
-        .toFixed(2);  
-  
+        .toFixed(2);
+
+
       let now, newExpirationDate, newStartDateTime, newDurationDays;
-      if (validityPeriod) {
-        now = new Date();
-        //newStartDateTime = now;
-        newStartDateTime = new Date(now.getTime() * 60 * 60 * 1000); // Restar 3 horas manualmente para amoldar a la hora de Argentina
-        newDurationDays = Number(validityPeriod);
+      const parsedValidityPeriod = Number(validityPeriod); // Asegurar que validityPeriod sea un número
+
+      console.log("************parsedValidityPeriod************: ", parsedValidityPeriod);
+
+      if (parsedValidityPeriod !== existingDiscount.validityPeriod) {
+        now = new Date(); // Fecha actual UTC
+        newStartDateTime = now;
+        newDurationDays = parsedValidityPeriod;
         newExpirationDate = new Date(newStartDateTime.getTime() + newDurationDays * 24 * 60 * 60 * 1000);
-  
+
         if (req.user.subRole === process.env.SUBROLE_VISIT_USER) {
-          newExpirationDate = new Date(newStartDateTime.getTime() + 30 * 60 * 1000);
+          newExpirationDate = new Date(newStartDateTime.getTime() + 30 * 60 * 1000); // 30 minutos para VISIT_USER
+        }
+
+        console.log("************parsedValidityPeriod************in: ", parsedValidityPeriod);
+
+        // Si el usuario NO es VISIT_USER y validityPeriod es 0, expirationDate debe ser null
+        if (req.user.subRole !== process.env.SUBROLE_VISIT_USER && parsedValidityPeriod === 0) {
+          newExpirationDate = null;
         }
       }
-  
+
       const updatedDiscount = await OfferedDiscount.findByIdAndUpdate(
         _id,
         {
@@ -316,23 +310,24 @@ const controller = {
           businessType,
           title,
           description,
-          normalPrice: Number(normalPriceNumber), // 💡 **Guardarlo ya redondeado**
-          priceWithDiscount: Number(newPrice), 
+          normalPrice: Number(normalPriceNumber), // Guardamos el precio ya redondeado
+          priceWithDiscount: Number(newPrice),
           discountAmount: Number(discountAmountNumber),
           imageURL: imageURL,
-          validityPeriod,
+          validityPeriod: parsedValidityPeriod,
           isActive: isActiveBoolean,
-          expirationDate: validityPeriod ? newExpirationDate : existingDiscount.expirationDate,
+          expirationDate: /* parsedValidityPeriod === 0 ? null :
+                           */(parsedValidityPeriod !== existingDiscount.validityPeriod ? newExpirationDate : existingDiscount.expirationDate),
           startDateTime: newStartDateTime || existingDiscount.startDateTime,
-          durationDays: newDurationDays || existingDiscount.durationDays,
+          durationDays: parsedValidityPeriod,
         },
         { new: true }
       );
-  
+
       if (!updatedDiscount) {
         return res.status(404).json({ message: "Descuento no encontrado" });
       }
-  
+
       console.log("Descuento actualizado correctamente:", updatedDiscount);
       res.status(200).json({
         message: "Descuento actualizado correctamente",
