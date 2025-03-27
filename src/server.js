@@ -156,7 +156,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const corsOptions = {
-  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081'],
+  origin: [process.env.FRONTEND_WEB_URL, 'http://localhost:8081', 'http://localhost:5173', process.env.PORTFOLIO_URL],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -220,6 +220,7 @@ import userDiscountQrsRoute from "./routes/userDiscountQrsRoute.js";
 import businessRoute from "./routes/businessRoute.js";
 import checkAccountRoute from "./routes/checkAccountRoute.js";
 import checkAdminAppRoute from "./routes/checkAdminAppRoute.js";
+import portfolioVisitRoute from "./routes/portfolioVisitRoute.js"
 
 const BASE_API_PATH = "/api";
 app.use("/", mainRoute);
@@ -229,6 +230,7 @@ app.use(BASE_API_PATH, userDiscountQrsRoute);
 app.use(BASE_API_PATH, businessRoute);
 app.use(BASE_API_PATH, checkAccountRoute);
 app.use(BASE_API_PATH, checkAdminAppRoute);
+app.use(BASE_API_PATH, portfolioVisitRoute);
 
 const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
 //const PORT = 5050;
