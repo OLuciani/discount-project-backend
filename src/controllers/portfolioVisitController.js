@@ -5,18 +5,15 @@ const controller = {
     console.log("Entrandoo al controller visitCounter");
     
     try {
-      // Busca el documento del contador, si no existe, lo crea con count en 0
-      let counter = await PortfolioVisit.findOne();
+      // Busca el documento y actualiza directamente el campo "count"
+      const result = await PortfolioVisit.findOneAndUpdate(
+        {}, // No uso un filtro porque solo hay un documento
+        { $inc: { count: 1 } }, // Incremento el campo "count"
+        { new: true } // Devuelve el documento actualizado
+      );
 
-      if (!counter) {
-        counter = new PortfolioVisit({ count: 0 });
-      }
-
-      // Incrementa el contador
-      counter.count += 1;
-      await counter.save();
-
-      res.status(200).json({ success: true, count: counter.count });
+      // Devuelve el valor actualizado del contador
+      res.status(200).json({ success: true, count: result.count });
     } catch (error) {
       res.status(500).json({ success: false, message: "Error al actualizar el contador", error });
     }
@@ -24,3 +21,4 @@ const controller = {
 };
 
 export default controller;
+
