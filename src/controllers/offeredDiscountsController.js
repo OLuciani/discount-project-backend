@@ -27,7 +27,9 @@ export const deactivateExpiredDiscounts = async () => {
     for (const discount of expiredDiscounts) {
       discount.isActive = false;
       discount.isDeleted = true;
-      await discount.save();
+      // Guardamos el descuento sin validar el schema completo porque solo actualizamos campos existentes (eso lo hace { validateBeforeSave: false }).
+      // Esto evita errores por campos requeridos (ej. coordenadas) que podrían estar ausentes en datos antiguos.
+      await discount.save({ validateBeforeSave: false }); 
     }
 
     console.log(
@@ -294,7 +296,7 @@ const controller = {
           newExpirationDate = new Date(newStartDateTime.getTime() + 30 * 60 * 1000); // 30 minutos para VISIT_USER
         }
 
-        console.log("************parsedValidityPeriod************in: ", parsedValidityPeriod);
+        console.log("parsedValidityPeriod: ", parsedValidityPeriod);
 
         // Si el usuario NO es VISIT_USER y validityPeriod es 0, expirationDate debe ser null
         if (req.user.subRole !== process.env.SUBROLE_VISIT_USER && parsedValidityPeriod === 0) {

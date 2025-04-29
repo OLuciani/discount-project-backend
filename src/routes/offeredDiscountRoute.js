@@ -6,7 +6,6 @@ import { authorizeRole } from "../middlewares/authorizeRole.js";
 
 const router = express.Router();
 
-//const roleAdminWeb = process.env.ROLE_ADMINWEB;
 const roleBusinessDirector = process.env.ROLE_BUSINESS_DIRECTOR;
 const roleBusinessManager = process.env.ROLE_BUSINESS_MANAGER;
 const roleBusinessEmployee = process.env.ROLE_BUSINESS_EMPLOYEE;

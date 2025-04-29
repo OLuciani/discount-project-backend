@@ -101,7 +101,8 @@ app.use(BASE_API_PATH, checkAccountRoute);
 app.use(BASE_API_PATH, checkAdminAppRoute);
 app.use(BASE_API_PATH, portfolioVisitRoute);
 
-const PORT = process.env.PORT_SECRET || 5050; //Descomentar para pushear.
+//const PORT = process.env.PORT_SECRET || 5050;
+const PORT = process.env.PORT || 5050;
 //const PORT = 5050;
 
 app.listen(PORT, '0.0.0.0', () => {

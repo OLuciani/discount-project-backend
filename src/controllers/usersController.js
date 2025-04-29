@@ -528,8 +528,6 @@ const controller = {
         if (name) updateData.name = name;
         if (lastName) updateData.lastName = lastName;
         if (phone) updateData.phone = phone;
-        //if (businessType) updateData.businessType = businessType;
-        //if (businessName) updateData.businessName = businessName;
   
         const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
           new: true,
@@ -1123,11 +1121,6 @@ const controller = {
   create_business_employee_user: async (req, res) => {
     const { name, lastName, email, phone, password, businessId} = req.body;
 
-    // Este condicional asegura que el email del token coincide con el email del body para que el usuario aceptado sea el que propone el administrador de la cuenta del negocio.
-    /* if (req.user.email !== email) {
-      return res.status(403).json({ error: "El email no coincide con el token proporcionado" });
-    } */
-
     console.log("Valor de email: ", email);
     console.log("Valor de businessId: ", businessId);
 
@@ -1442,10 +1435,6 @@ const controller = {
 
       // Actualizar el estado del usuario a 'pending'
       user.status = "pending"; // Asume que hay un campo 'status' que almacena el estado del usuario
-
-     /*  const roleAdminWeb = process.env.ROLE_ADMINWEB;
-      // Si es necesario, también puedes actualizar el rol del usuario
-      user.role = roleAdminWeb; // Cambia el rol según lo que necesites */
 
       // Guardar los cambios
       await user.save();
