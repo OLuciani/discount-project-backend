@@ -125,7 +125,26 @@ SERVICE_ACCOUNT_UNIVERSE_DOMAIN=
 ...
 ```
 
-4. Iniciar el servidor:
+⚠️ La sección 4 documenta los pasos necesarios para desplegar este backend en producción usando Koyeb. Para poder realizar el despliegue, es necesario contar con acceso a los valores reales de las variables de entorno.
+
+4. 🚀 Despliegue en Koyeb
+
+Para que el backend funcione correctamente en producción, es necesario configurar todas las variables de entorno en el panel de control de Koyeb:
+
+🧾 Variables necesarias:
+Copiar todas las variables del archivo .env.example y completar los valores reales antes de agregarlas.
+
+📌 Instrucciones:
+Ir a la sección “Environment variables and files” dentro del panel del servicio en Koyeb.
+
+Pegar cada variable manualmente usando el formulario, o seleccionar “Raw editor” y pegar el archivo .env completo.
+
+Guardar los cambios y desplegar el servicio.
+
+✅ Koyeb no carga automáticamente las variables del archivo .env de tu repositorio, por eso deben ingresarse de forma manual o mediante el Raw editor.
+
+
+5. Iniciar el servidor:
 
 ```bash
 npm start
