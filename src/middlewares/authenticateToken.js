@@ -5,8 +5,8 @@ const authenticateToken = (req, res, next) => {
   const token = req.cookies.token || req.headers['authorization']; // Tomamos el token de las cookies o de los headers de la petición
   
   // Imprimimos el valor de token, cookies y headers para verificar
-  console.log("Cookies recibidas:", req.cookies);
-  console.log("Headers recibidos:", req.headers);
+  //console.log("Cookies recibidas:", req.cookies);
+  //console.log("Headers recibidos:", req.headers);
   console.log("Token recibido:", token); // Log para verificar el token
 
   // Si no encontramos el token, respondemos con un error 401
