@@ -1,5 +1,4 @@
-
-# 🍽️ Comé x menos – Backend
+# 🍽️ Comé x Menos – Backend
 
 Este es el repositorio del **backend** de **Comé x menos**, una plataforma de descuentos en tiempo real para restaurantes, bares, panaderías, cafés y otros comercios gastronómicos. Esta API sirve a dos clientes dentro de una misma **aplicación híbrida**:
 
@@ -10,14 +9,14 @@ Este es el repositorio del **backend** de **Comé x menos**, una plataforma de d
 
 ## 🚀 Tecnologías utilizadas
 
-- **Node.js** + **Express.js** – API RESTful
-- **MongoDB Atlas** – Base de datos NoSQL en la nube
-- **Firebase** – Almacenamiento de imágenes y autenticación parcial
-- **Multer + Sharp** – Procesamiento de imágenes del lado del servidor
-- **JWT + Cookies** – Autenticación segura con tokens firmados
-- **Nodemailer** – Envío de correos de confirmación y recuperación
-- **dotenv** – Manejo de variables de entorno
-- **Helmet + CORS + Compression** – Seguridad y rendimiento
+- **Node.js** + **Express.js** – API RESTful  
+- **MongoDB Atlas** – Base de datos NoSQL en la nube  
+- **Firebase** – Almacenamiento de imágenes y autenticación parcial  
+- **Multer + Sharp** – Procesamiento de imágenes del lado del servidor  
+- **JWT + Cookies** – Autenticación segura con tokens firmados  
+- **Nodemailer** – Envío de correos de confirmación y recuperación  
+- **dotenv** – Manejo de variables de entorno  
+- **Helmet + CORS + Compression** – Seguridad y rendimiento  
 
 ---
 
@@ -28,15 +27,15 @@ El backend sigue una arquitectura **MVC modularizada**, dividiendo claramente re
 ```
 .
 ├── .env                     # Variables de entorno
-├── config/                 # Configuraciones generales (Firebase, subida de imágenes, etc.)
+├── config/                  # Configuraciones generales (Firebase, subida de imágenes, etc.)
 ├── src/
-│   ├── controllers/        # Lógica de negocio asociada a rutas
-│   ├── middlewares/        # Middlewares personalizados: autenticación, validaciones, subida de archivos, etc.
-│   ├── models/             # Esquemas de Mongoose para los datos
-│   ├── routes/             # Rutas del servidor agrupadas por entidad
-│   ├── views/              # Vista EJS para pruebas puntuales
-│   └── server.js           # Punto de entrada del servidor
-└── package.json            # Dependencias y scripts del proyecto
+│   ├── controllers/         # Lógica de negocio asociada a rutas
+│   ├── middlewares/         # Middlewares personalizados: autenticación, validaciones, subida de archivos, etc.
+│   ├── models/              # Esquemas de Mongoose para los datos
+│   ├── routes/              # Rutas del servidor agrupadas por entidad
+│   ├── views/               # Vista EJS para pruebas puntuales
+│   └── server.js            # Punto de entrada del servidor
+└── package.json             # Dependencias y scripts del proyecto
 ```
 
 Esta organización hace que el backend sea **escalable, mantenible y claro para nuevos desarrolladores**.
@@ -45,10 +44,10 @@ Esta organización hace que el backend sea **escalable, mantenible y claro para 
 
 ## 🔐 Autenticación y manejo de sesión
 
-- **JWT** (JSON Web Tokens) firmados con secreto privado
-- Tokens enviados y almacenados en **cookies HTTP-only** para mayor seguridad
-- Roles definidos: `appAdmin`, `businessDirector`, `businessManager`, `businessEmployee`, `mobileCustomer`
-- Tokens temporales para verificación de cuenta y restablecimiento de contraseña
+- **JWT** (JSON Web Tokens) firmados con secreto privado  
+- Tokens enviados y almacenados en **cookies HTTP-only** para mayor seguridad  
+- Roles definidos: `appAdmin`, `businessDirector`, `businessManager`, `businessEmployee`, `mobileCustomer`  
+- Tokens temporales para verificación de cuenta y restablecimiento de contraseña  
 
 ---
 
@@ -131,18 +130,17 @@ SERVICE_ACCOUNT_UNIVERSE_DOMAIN=
 
 Para que el backend funcione correctamente en producción, es necesario configurar todas las variables de entorno en el panel de control de Koyeb:
 
-🧾 Variables necesarias:
-Copiar todas las variables del archivo .env.example y completar los valores reales antes de agregarlas.
+🧾 Variables necesarias:  
+Copiar todas las variables del archivo `.env.example` y completar los valores reales antes de agregarlas.
 
-📌 Instrucciones:
-Ir a la sección “Environment variables and files” dentro del panel del servicio en Koyeb.
+📌 Instrucciones:  
+Ir a la sección “Environment variables and files” dentro del panel del servicio en Koyeb.  
 
-Pegar cada variable manualmente usando el formulario, o seleccionar “Raw editor” y pegar el archivo .env completo.
+Pegar cada variable manualmente usando el formulario, o seleccionar “Raw editor” y pegar el archivo `.env` completo.  
 
-Guardar los cambios y desplegar el servicio.
+Guardar los cambios y desplegar el servicio.  
 
-✅ Koyeb no carga automáticamente las variables del archivo .env de tu repositorio, por eso deben ingresarse de forma manual o mediante el Raw editor.
-
+✅ Koyeb no carga automáticamente las variables del archivo `.env` de tu repositorio, por eso deben ingresarse de forma manual o mediante el Raw editor.
 
 5. Iniciar el servidor:
 
@@ -160,14 +158,14 @@ npm run dev
 
 ## 🔄 Principales endpoints (resumen)
 
-| Método | Ruta                              | Descripción                                      |
-|--------|-----------------------------------|--------------------------------------------------|
-| POST   | `/users/register`                 | Registro de nuevo usuario                        |
-| POST   | `/users/login`                    | Inicio de sesión con JWT en cookies              |
-| GET    | `/discounts/public`               | Obtener descuentos activos                       |
-| POST   | `/business/create`                | Crear nuevo comercio (solo roles autorizados)    |
-| PATCH  | `/discounts/:id/deactivate`       | Desactivar descuento vencido                     |
-| GET    | `/admin/check-access`             | Verificar rol de administrador de app            |
+| Método | Ruta                            | Descripción                                      |
+|--------|--------------------------------|------------------------------------------------|
+| POST   | `/users/register`               | Registro de nuevo usuario                        |
+| POST   | `/users/login`                  | Inicio de sesión con JWT en cookies             |
+| GET    | `/discounts/public`             | Obtener descuentos activos                       |
+| POST   | `/business/create`              | Crear nuevo comercio (solo roles autorizados)   |
+| PATCH  | `/discounts/:id/deactivate`    | Desactivar descuento vencido                     |
+| GET    | `/admin/check-access`           | Verificar rol de administrador de app           |
 
 > 🛡️ Todas las rutas protegidas utilizan middlewares de autenticación y autorización por rol.
 
@@ -177,13 +175,13 @@ npm run dev
 
 Durante el desarrollo de este backend, se pusieron en práctica habilidades clave como:
 
-- Diseño e implementación de API RESTful
-- Arquitectura modular basada en MVC
-- Seguridad web: cookies seguras, validaciones, headers
-- Gestión de archivos (imágenes/documentos) en servidores y en Firebase
-- Uso de servicios externos (Firebase, Nodemailer, MongoDB Atlas)
-- Control de flujo asíncrono con `async/await` y manejo de errores
-- Versionamiento de código y uso profesional de Git y GitHub
+- Diseño e implementación de API RESTful  
+- Arquitectura modular basada en MVC  
+- Seguridad web: cookies seguras, validaciones, headers  
+- Gestión de archivos (imágenes/documentos) en servidores y en Firebase  
+- Uso de servicios externos (Firebase, Nodemailer, MongoDB Atlas)  
+- Control de flujo asíncrono con `async/await` y manejo de errores  
+- Versionamiento de código y uso profesional de Git y GitHub  
 
 ---
 
@@ -200,7 +198,7 @@ Ambos repositorios son públicos y están pensados para funcionar en conjunto co
 
 ✔️ Variables de entorno y dependencias no están versionadas (ver `.gitignore`)  
 ✔️ Proyecto listo para despliegue o desarrollo colaborativo  
-✔️ Documentación técnica y estructura clara
+✔️ Documentación técnica y estructura clara  
 
 ---
 
@@ -208,6 +206,7 @@ Ambos repositorios son públicos y están pensados para funcionar en conjunto co
 
 Desarrollado por **Oscar Luciani**  
 [GitHub: @OLuciani](https://github.com/OLuciani)  
-Proyecto académico con fines de aprendizaje y mejora continua.
+
+Este proyecto forma parte de mi desarrollo profesional continuo y mejora constante.
 
 ---
